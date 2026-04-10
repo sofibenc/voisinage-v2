@@ -5,6 +5,7 @@ import { useMembers }   from '../hooks/useMembers.js';
 import AgendaView       from '../components/AgendaView/AgendaView.jsx';
 import TemplatePanel    from '../components/TemplatePanel.jsx';
 import { MONTHS, monthKey } from '../constants.js';
+import { SLOTS_PER_DAY } from '../utils/slots.js';
 
 export default function WishTab({ member }) {
   const now   = new Date();
@@ -12,12 +13,29 @@ export default function WishTab({ member }) {
   const [month, setMonth] = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const { slots, toggleSlot, setSlotRange, clearAll } = useWishlist(member?.uid, mk);
+  const { slots, toggleSlot, setSlotRange, mergeSlots, clearAll } = useWishlist(member?.uid, mk);
   const { schedule, deadline, isDeadlinePassed }      = useSchedule(year, month);
   const { colorOf } = useMembers();
   const myColor = colorOf(member?.uid);
 
   const [showTemplate, setShowTemplate] = useState(false);
+  const [showQuickRange, setShowQuickRange] = useState(false);
+  const [qStart, setQStart] = useState(36); // 18h00
+  const [qEnd,   setQEnd]   = useState(43); // 21h30
+  const [qDays,  setQDays]  = useState('all'); // 'all' | 'weekdays' | 'weekends'
+
+  function applyQuickRange() {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const toAdd = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dow = (new Date(year, month, d).getDay() + 6) % 7; // 0=Mon 6=Sun
+      if (qDays === 'weekdays' && dow >= 5) continue;
+      if (qDays === 'weekends' && dow < 5) continue;
+      const base = (d - 1) * SLOTS_PER_DAY;
+      for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+    }
+    mergeSlots(toAdd);
+  }
 
   // Drag selection
   const dragRef = useRef({ active: false, startSlot: null, wasSelected: null });
@@ -118,6 +136,63 @@ export default function WishTab({ member }) {
                        fontSize: 11, fontWeight: 700, opacity: 0.7 }}>
               ✕ Tout effacer
             </button>
+          )}
+        </div>
+      )}
+
+      {/* Quick range selector */}
+      {!locked && (
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={() => setShowQuickRange(v => !v)}
+            style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
+                     borderRadius: 10, padding: '8px 12px', fontSize: 13,
+                     color: '#475569', textAlign: 'left', display: 'flex',
+                     justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>⚡ Ajouter une plage horaire</span>
+            <span style={{ fontSize: 11, color: '#94A3B8' }}>{showQuickRange ? '▲' : '▼'}</span>
+          </button>
+          {showQuickRange && (
+            <div style={{ background: 'white', border: '1px solid #E2E8F0',
+                          borderTop: 'none', borderRadius: '0 0 10px 10px',
+                          padding: '12px 12px 14px' }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center',
+                            flexWrap: 'wrap', marginBottom: 10 }}>
+                <select value={qStart} onChange={e => setQStart(Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: 48 }, (_, s) => (
+                    <option key={s} value={s}>
+                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ color: '#94A3B8', fontSize: 13 }}>→</span>
+                <select value={qEnd} onChange={e => setQEnd(Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: 48 }, (_, s) => (
+                    <option key={s} value={s}>
+                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                {[['all', 'Tous les jours'], ['weekdays', 'Semaine'], ['weekends', 'Week-ends']].map(([v, label]) => (
+                  <button key={v} onClick={() => setQDays(v)}
+                    style={{ flex: 1, padding: '6px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                             border: `2px solid ${qDays === v ? myColor.bg : '#E2E8F0'}`,
+                             background: qDays === v ? myColor.light : 'white',
+                             color: qDays === v ? myColor.text : '#64748B' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <button onClick={applyQuickRange} disabled={qStart > qEnd}
+                style={{ width: '100%', background: qStart > qEnd ? '#94A3B8' : myColor.bg,
+                         color: 'white', border: 'none', borderRadius: 8,
+                         padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
+                Ajouter au mois
+              </button>
+            </div>
           )}
         </div>
       )}
