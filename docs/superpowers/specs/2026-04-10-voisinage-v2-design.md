@@ -50,8 +50,12 @@ members/{uid}
   photoURL: string
   isAdmin: boolean
   template: {
-    patterns: string[]          // ex: ["weekends", "fridays"]
-    customSlots: number[]       // slotIds récurrents (par jour de semaine + heure)
+    patterns: string[]          // ex: ["weekends", "fridays"] — patterns prédéfinis
+    customRanges: Array<{       // plages horaires récurrentes par jour de semaine
+      dayOfWeek: number         // 0=lun … 6=dim
+      startSlot: number         // 0-47 (heure dans la journée)
+      endSlot: number           // 0-47, inclusif
+    }>
   }
   fcmTokens: string[]
 
@@ -129,7 +133,9 @@ computeSchedule(members, wishlists, year, month, prevUsage):
 
 **Quota :** calculé en heures (`quotaHours`). Affiché dans l'UI comme "X heures ce mois".
 
-**Publication automatique :** un `setInterval` ou `onSnapshot` sur `settings/global` vérifie si la deadline est dépassée et si `schedules/{monthKey}` n'existe pas encore. Le premier client qui détecte la condition lance le calcul et écrit le résultat. Une transaction Firestore garantit l'idempotence (échec silencieux si le doc existe déjà).
+**Publication automatique :** à chaque ouverture de l'app (et après chaque changement de mois détecté via `onSnapshot` sur `settings/global`), le client vérifie : deadline dépassée ET `schedules/{monthKey}` absent. Si les deux conditions sont vraies, il calcule le planning et tente de l'écrire. Une transaction Firestore garantit l'idempotence : si plusieurs clients détectent la condition simultanément, un seul réussira à créer le document, les autres échoueront silencieusement. Si aucun client n'est connecté au moment exact de la deadline, le planning sera publié dès que le premier voisin ouvrira l'app.
+
+**Mise à jour de `prevUsage` :** au moment où `schedules/{monthKey}` est créé, le client écrit simultanément `prevUsage/{monthKey}` avec le nombre d'heures attribuées à chaque voisin ce mois (= `assigned[uid] / 2`). Ce document servira de tiebreaker pour le mois suivant.
 
 ---
 
