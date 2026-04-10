@@ -1,6 +1,7 @@
 import { totalSlotsInMonth } from './slots.js';
 
 export function computeSchedule(members, wishlists, year, month, prevUsage = {}) {
+  if (!members.length) return { assignments: {}, quotaHours: 0, fairness: {} };
   const totalSlots = totalSlotsInMonth(year, month);
   const quotaSlots = Math.floor(totalSlots / members.length);
   const quotaHours = quotaSlots / 2;
