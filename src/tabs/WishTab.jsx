@@ -3,6 +3,7 @@ import { useWishlist }  from '../hooks/useWishlist.js';
 import { useSchedule }  from '../hooks/useSchedule.js';
 import { useMembers }   from '../hooks/useMembers.js';
 import AgendaView       from '../components/AgendaView/AgendaView.jsx';
+import TemplatePanel    from '../components/TemplatePanel.jsx';
 import { MONTHS, monthKey } from '../constants.js';
 
 export default function WishTab({ member }) {
@@ -133,23 +134,13 @@ export default function WishTab({ member }) {
         />
       </div>
 
-      {/* Template modal placeholder — implemented in Task 11 */}
       {showTemplate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-                      zIndex: 50, display: 'flex', alignItems: 'flex-end' }}>
-          <div style={{ background: 'white', borderRadius: '16px 16px 0 0',
-                        padding: 20, width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between',
-                          alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>Template</h2>
-              <button onClick={() => setShowTemplate(false)}
-                style={{ background: 'none', border: 'none', fontSize: 22 }}>×</button>
-            </div>
-            <p style={{ color: '#94A3B8', fontSize: 13 }}>
-              Template panel — à implémenter en Task 11
-            </p>
-          </div>
-        </div>
+        <TemplatePanel
+          member={member}
+          year={year} month={month}
+          myColor={myColor}
+          onClose={() => setShowTemplate(false)}
+        />
       )}
     </div>
   );
