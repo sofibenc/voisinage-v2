@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { settingsDoc, setDeadline, scheduleDoc } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
+import { useSchedule } from '../hooks/useSchedule.js';
 import { monthKey, MONTHS } from '../constants.js';
 
 function defaultDeadline(year, month) {
@@ -16,7 +17,7 @@ export default function AdminTab({ member }) {
   const [month, setMonth]   = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const [schedule,  setSchedule]  = useState(null);
+  const { schedule, publishing, forcePublish } = useSchedule(year, month);
   const { members } = useMembers();
 
   const [deadline, setDeadlineInput] = useState('');
@@ -25,12 +26,6 @@ export default function AdminTab({ member }) {
     return onSnapshot(settingsDoc(), snap => {
       const s = snap.exists() ? snap.data() : {};
       setDeadlineInput(s.deadlines?.[mk] ?? defaultDeadline(year, month));
-    });
-  }, [mk]);
-
-  useEffect(() => {
-    return onSnapshot(scheduleDoc(mk), snap => {
-      setSchedule(snap.exists() ? snap.data() : null);
     });
   }, [mk]);
 
@@ -97,9 +92,18 @@ export default function AdminTab({ member }) {
 
       {!schedule && (
         <div style={{ background: '#F8FAFC', borderRadius: 14, padding: 16,
-                      textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
+                      textAlign: 'center', color: '#94A3B8', fontSize: 13, marginBottom: 12 }}>
           Planning non encore publié pour ce mois.
         </div>
+      )}
+
+      {!schedule && (
+        <button onClick={forcePublish} disabled={publishing}
+          style={{ width: '100%', background: publishing ? '#94A3B8' : '#1E293B',
+                   color: 'white', border: 'none', borderRadius: 12,
+                   padding: '14px 0', fontSize: 15, fontWeight: 700 }}>
+          {publishing ? 'Publication en cours…' : 'Publier maintenant'}
+        </button>
       )}
     </div>
   );

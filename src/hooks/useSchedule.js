@@ -31,22 +31,17 @@ export function useSchedule(year, month) {
   const release = (slotId, uid) => releaseSlot(mk, slotId, uid);
   const claim   = (slotId, uid) => claimSlot(mk, slotId, uid);
 
+  const forcePublish = () => doPublish(mk, publishingRef, setPublishing);
+
   const deadline = settings?.deadlines?.[mk] ?? null;
   const isDeadlinePassed = deadline
     ? new Date() > new Date(deadline + 'T23:59:59')
     : false;
 
-  return { schedule, deadline, isDeadlinePassed, publishing, release, claim };
+  return { schedule, deadline, isDeadlinePassed, publishing, release, claim, forcePublish };
 }
 
-async function checkAndPublish(mk, settings, publishingRef, setPublishing) {
-  const deadline = settings?.deadlines?.[mk];
-  if (!deadline) return;
-  if (new Date() <= new Date(deadline + 'T23:59:59')) return;
-
-  const schedSnap = await getDoc(scheduleDoc(mk));
-  if (schedSnap.exists()) return;
-
+async function doPublish(mk, publishingRef, setPublishing) {
   if (publishingRef.current) return;
   publishingRef.current = true;
   setPublishing(true);
@@ -86,4 +81,15 @@ async function checkAndPublish(mk, settings, publishingRef, setPublishing) {
     publishingRef.current = false;
     setPublishing(false);
   }
+}
+
+async function checkAndPublish(mk, settings, publishingRef, setPublishing) {
+  const deadline = settings?.deadlines?.[mk];
+  if (!deadline) return;
+  if (new Date() <= new Date(deadline + 'T23:59:59')) return;
+
+  const schedSnap = await getDoc(scheduleDoc(mk));
+  if (schedSnap.exists()) return;
+
+  await doPublish(mk, publishingRef, setPublishing);
 }
