@@ -4,8 +4,8 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore, doc, collection,
-  getDoc, getDocs, setDoc, updateDoc,
-  onSnapshot, runTransaction, arrayUnion, arrayRemove,
+  getDoc, setDoc,
+  runTransaction, arrayUnion, arrayRemove,
   serverTimestamp,
 } from 'firebase/firestore';
 
