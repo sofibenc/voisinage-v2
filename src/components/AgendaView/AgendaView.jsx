@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import DayView from './DayView.jsx';
+import DayView   from './DayView.jsx';
+import WeekView  from './WeekView.jsx';
+import MonthView from './MonthView.jsx';
 
 const VIEWS = ['Jour', 'Semaine', 'Mois'];
 
@@ -55,15 +57,18 @@ export default function AgendaView({
       )}
 
       {view === 'Semaine' && (
-        <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
-          Vue Semaine — à implémenter (Task 9)
-        </div>
+        <WeekView
+          year={year} month={month}
+          getSlotState={getSlotState}
+          onSlotPointerDown={onSlotPointerDown}
+          onSlotPointerEnter={onSlotPointerEnter}
+          onSlotPointerUp={onSlotPointerUp}
+          onSlotClick={onSlotClick}
+        />
       )}
 
       {view === 'Mois' && (
-        <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
-          Vue Mois — à implémenter (Task 9)
-        </div>
+        <MonthView year={year} month={month} getSlotState={getSlotState} />
       )}
     </div>
   );
