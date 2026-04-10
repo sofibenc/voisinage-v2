@@ -32,10 +32,16 @@ export function useWishlist(uid, mk) {
     await setWishlist(uid, mk, next);
   }, [uid, mk, slots]);
 
+  const mergeSlots = useCallback(async (toAdd) => {
+    const next = [...new Set([...slots, ...toAdd])].sort((a, b) => a - b);
+    setSlots(next);
+    await setWishlist(uid, mk, next);
+  }, [uid, mk, slots]);
+
   const clearAll = useCallback(async () => {
     setSlots([]);
     await setWishlist(uid, mk, []);
   }, [uid, mk]);
 
-  return { slots, toggleSlot, setSlotRange, clearAll };
+  return { slots, toggleSlot, setSlotRange, mergeSlots, clearAll };
 }

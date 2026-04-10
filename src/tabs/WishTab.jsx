@@ -5,6 +5,7 @@ import { useMembers }   from '../hooks/useMembers.js';
 import AgendaView       from '../components/AgendaView/AgendaView.jsx';
 import TemplatePanel    from '../components/TemplatePanel.jsx';
 import { MONTHS, monthKey } from '../constants.js';
+import { SLOTS_PER_DAY } from '../utils/slots.js';
 
 export default function WishTab({ member }) {
   const now   = new Date();
@@ -12,12 +13,25 @@ export default function WishTab({ member }) {
   const [month, setMonth] = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const { slots, toggleSlot, setSlotRange, clearAll } = useWishlist(member?.uid, mk);
+  const { slots, toggleSlot, setSlotRange, mergeSlots, clearAll } = useWishlist(member?.uid, mk);
   const { schedule, deadline, isDeadlinePassed }      = useSchedule(year, month);
   const { colorOf } = useMembers();
   const myColor = colorOf(member?.uid);
 
-  const [showTemplate, setShowTemplate] = useState(false);
+  const [showTemplate,   setShowTemplate]   = useState(false);
+  const [showAddRange,   setShowAddRange]   = useState(false);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const [qDay,   setQDay]   = useState(1);
+  const [qStart, setQStart] = useState(36); // 18h00
+  const [qEnd,   setQEnd]   = useState(43); // 21h30
+
+  function applyAddRange() {
+    const base = (qDay - 1) * SLOTS_PER_DAY;
+    const toAdd = [];
+    for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+    mergeSlots(toAdd);
+    setShowAddRange(false);
+  }
 
   // Drag selection
   const dragRef = useRef({ active: false, startSlot: null, wasSelected: null });
@@ -123,6 +137,66 @@ export default function WishTab({ member }) {
       )}
 
       {/* Agenda */}
+      {/* Add time range */}
+      {!locked && (
+        <div style={{ marginBottom: 10 }}>
+          <button onClick={() => setShowAddRange(v => !v)}
+            style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
+                     borderRadius: showAddRange ? '10px 10px 0 0' : 10,
+                     padding: '9px 12px', fontSize: 13, color: '#475569',
+                     display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>+ Ajouter une plage horaire</span>
+            <span style={{ fontSize: 11, color: '#94A3B8' }}>{showAddRange ? '▲' : '▼'}</span>
+          </button>
+          {showAddRange && (
+            <div style={{ background: 'white', border: '1px solid #E2E8F0', borderTop: 'none',
+                          borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
+                          display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Jour</label>
+                <select value={qDay} onChange={e => setQDay(Number(e.target.value))}
+                  style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
+                           border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>
+                      {d} {MONTHS[month]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>De</label>
+                <select value={qStart} onChange={e => setQStart(Number(e.target.value))}
+                  style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
+                           border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: 48 }, (_, s) => (
+                    <option key={s} value={s}>
+                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
+                    </option>
+                  ))}
+                </select>
+                <label style={{ fontSize: 12, color: '#64748B' }}>à</label>
+                <select value={qEnd} onChange={e => setQEnd(Number(e.target.value))}
+                  style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
+                           border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: 48 }, (_, s) => (
+                    <option key={s} value={s}>
+                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button onClick={applyAddRange} disabled={qStart > qEnd}
+                style={{ background: qStart > qEnd ? '#94A3B8' : myColor.bg,
+                         color: 'white', border: 'none', borderRadius: 8,
+                         padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
+                Ajouter
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ background: 'white', borderRadius: 14, padding: 8,
                     boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
         <AgendaView
