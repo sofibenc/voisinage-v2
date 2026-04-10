@@ -58,6 +58,7 @@ export default function AgendaView({
 
       {view === 'Semaine' && (
         <WeekView
+          key={`${year}-${month}`}
           year={year} month={month}
           getSlotState={getSlotState}
           onSlotPointerDown={onSlotPointerDown}

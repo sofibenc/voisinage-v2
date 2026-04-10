@@ -44,6 +44,7 @@ export default function MonthView({ year, month, getSlotState }) {
       }}>
         <span style={{ fontWeight: 700, color: '#1E293B' }}>{d}</span>
         {mineCount > 0 && (
+          // mineCount / 2 = hours (30-min slots, so 2 slots = 1h)
           <span style={{ fontSize: 9, color: '#64748B' }}>{mineCount / 2}h</span>
         )}
       </div>
