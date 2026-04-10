@@ -60,7 +60,7 @@ export default function SpotsTab({ member }) {
               <span style={{ marginLeft: 'auto', color: '#94A3B8' }}>›</span>
             </button>
           ))}
-          {member?.isAdmin && (
+          {member && (
             <button onClick={() => addSpot(member.uid, `Place de ${member.name}`, '#457B9D')}
               style={{ padding: 14, background: '#F1F5F9', borderRadius: 12,
                        border: '2px dashed #CBD5E1', fontSize: 13, color: '#64748B' }}>

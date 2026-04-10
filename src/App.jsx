@@ -16,6 +16,16 @@ const TABS = [
 export default function App() {
   const { user, member } = useAuth();
   const [tab, setTab] = useState('wish');
+  const [authError, setAuthError] = useState(null);
+
+  async function handleLogin() {
+    try {
+      setAuthError(null);
+      await loginWithGoogle();
+    } catch (e) {
+      setAuthError(e.code ?? e.message);
+    }
+  }
 
   if (user === undefined) return (
     <div style={{ padding: 32, textAlign: 'center', color: '#64748B' }}>Chargement…</div>
@@ -26,11 +36,16 @@ export default function App() {
                   justifyContent: 'center', minHeight: '100vh', gap: 16 }}>
       <h1 style={{ fontSize: 24, fontWeight: 700 }}>Voisinage</h1>
       <p style={{ color: '#64748B' }}>Parking partagé entre voisins</p>
-      <button onClick={loginWithGoogle}
+      <button onClick={handleLogin}
         style={{ background: '#1E293B', color: 'white', border: 'none',
                  borderRadius: 10, padding: '12px 24px', fontSize: 15, fontWeight: 600 }}>
         Connexion avec Google
       </button>
+      {authError && (
+        <div style={{ color: '#DC2626', fontSize: 13, maxWidth: 320, textAlign: 'center' }}>
+          Erreur : {authError}
+        </div>
+      )}
     </div>
   );
 
