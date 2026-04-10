@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+    function isAdmin() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.isAdmin == true;
+    }
+    function isOwner(uid) { return isAuth() && request.auth.uid == uid; }
+
+    match /members/{uid} {
+      allow read:   if isAuth();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /wishlists/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth()
+        && request.auth.uid == request.resource.data.uid
+        && !exists(/databases/$(database)/documents/schedules/$(request.resource.data.monthKey));
+      allow delete: if isAuth() && request.auth.uid == resource.data.uid;
+    }
+
+    match /schedules/{monthKey} {
+      allow read:   if isAuth();
+      allow create: if isAuth();   // any client can publish (idempotent transaction)
+      allow update: if isAuth();   // release / claim
+      allow delete: if isAdmin();
+    }
+
+    match /prevUsage/{monthKey} {
+      allow read:  if isAuth();
+      allow write: if isAuth();
+    }
+
+    match /settings/{docId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+
+    match /spots/{spotId} {
+      allow read:   if isAuth();
+      allow create: if isAuth() && request.auth.uid == request.resource.data.ownerUid;
+      allow update: if isAuth() && resource.data.ownerUid == request.auth.uid;
+      allow delete: if isAuth() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /spotAvailability/{docId} {
+      allow read:   if isAuth();
+      allow create: if isAuth() && request.auth.uid == request.resource.data.ownerUid;
+      allow update: if isAuth(); // owner adds slots + any member claims
+      allow delete: if isAuth() && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}
