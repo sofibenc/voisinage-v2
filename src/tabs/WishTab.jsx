@@ -20,6 +20,7 @@ export default function WishTab({ member }) {
 
   const [showTemplate,   setShowTemplate]   = useState(false);
   const [showAddRange,   setShowAddRange]   = useState(false);
+  const [editMode,       setEditMode]       = useState(false);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
   const [qDay,   setQDay]   = useState(todayDay);
@@ -214,14 +215,27 @@ export default function WishTab({ member }) {
         </div>
       )}
 
+      {/* Edit / Scroll toggle */}
+      {!locked && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+          <button onClick={() => setEditMode(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6,
+                     background: editMode ? myColor.bg : '#F1F5F9',
+                     color: editMode ? 'white' : '#64748B',
+                     border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: 600 }}>
+            {editMode ? '✏️ Édition' : '☰ Scroll'}
+          </button>
+        </div>
+      )}
+
       <div style={{ background: 'white', borderRadius: 14, padding: 8,
                     boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
         <AgendaView
           year={year} month={month}
           getSlotState={getSlotState}
-          onSlotPointerDown={locked ? undefined : handlePointerDown}
-          onSlotPointerEnter={locked ? undefined : handlePointerEnter}
-          onSlotPointerUp={locked ? undefined : handlePointerUp}
+          onSlotPointerDown={locked || !editMode ? undefined : handlePointerDown}
+          onSlotPointerEnter={locked || !editMode ? undefined : handlePointerEnter}
+          onSlotPointerUp={locked || !editMode ? undefined : handlePointerUp}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
         />
