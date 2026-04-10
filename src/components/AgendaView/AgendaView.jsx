@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import DayView from './DayView.jsx';
-import { MONTHS } from '../../constants.js';
 
 const VIEWS = ['Jour', 'Semaine', 'Mois'];
 
