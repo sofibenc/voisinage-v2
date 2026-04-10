@@ -13,6 +13,7 @@ import { formatSlotTime } from '../../utils/slots.js';
 export default function SlotRow({
   slotId, state = 'empty', color, label = '',
   showTime = false, onPointerDown, onPointerEnter, onPointerUp, onClick,
+  interactive = false,
 }) {
   const bg = state === 'mine'      ? color?.bg    :
              state === 'other'     ? color?.light  :
@@ -32,7 +33,7 @@ export default function SlotRow({
         display: 'flex', alignItems: 'center', height: 20,
         background: bg, borderBottom: '1px solid #F1F5F9',
         cursor: (onClick || onPointerDown) ? 'pointer' : 'default',
-        userSelect: 'none', touchAction: 'none',
+        userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
         paddingLeft: 4, paddingRight: 4,
       }}
     >

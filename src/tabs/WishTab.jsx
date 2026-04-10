@@ -238,6 +238,7 @@ export default function WishTab({ member }) {
           onSlotPointerUp={locked || !editMode ? undefined : handlePointerUp}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
+          interactive={editMode}
         />
       </div>
 

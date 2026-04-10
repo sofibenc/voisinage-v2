@@ -12,6 +12,7 @@ export default function WeekView({
   year, month,
   getSlotState,
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
+  interactive = false,
 }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
@@ -92,7 +93,7 @@ export default function WeekView({
                   style={{
                     flex: 1, height: 14, background: bg,
                     cursor: (onSlotClick || onSlotPointerDown) ? 'pointer' : 'default',
-                    userSelect: 'none', touchAction: 'none',
+                    userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
                     borderLeft: '1px solid #F1F5F9',
                   }}
                 />

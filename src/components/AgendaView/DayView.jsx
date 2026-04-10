@@ -14,6 +14,7 @@ export default function DayView({
   year, month, day,
   getSlotState,
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
+  interactive = false,
 }) {
   const base = (day - 1) * SLOTS_PER_DAY;
   const rows = [];
@@ -29,6 +30,7 @@ export default function DayView({
         color={color}
         label={label}
         showTime={s % 2 === 0}
+        interactive={interactive}
         onPointerDown={onSlotPointerDown ? e => onSlotPointerDown(sid, e) : undefined}
         onPointerEnter={onSlotPointerEnter ? () => onSlotPointerEnter(sid) : undefined}
         onPointerUp={onSlotPointerUp}
