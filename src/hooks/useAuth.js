@@ -11,13 +11,26 @@ export function useAuth() {
     return onAuthStateChanged(auth, async firebaseUser => {
       if (!firebaseUser) { setUser(null); setMember(null); return; }
       setUser(firebaseUser);
-      await upsertMember(firebaseUser.uid, {
+      // Fallback member from Firebase Auth data (used if Firestore is unavailable)
+      const fallback = {
+        uid:      firebaseUser.uid,
         name:     firebaseUser.displayName,
         email:    firebaseUser.email,
         photoURL: firebaseUser.photoURL,
-      });
-      const snap = await getDoc(memberDoc(firebaseUser.uid));
-      setMember(snap.exists() ? { uid: firebaseUser.uid, ...snap.data() } : null);
+        isAdmin:  false,
+      };
+      setMember(fallback);
+      try {
+        await upsertMember(firebaseUser.uid, {
+          name:     firebaseUser.displayName,
+          email:    firebaseUser.email,
+          photoURL: firebaseUser.photoURL,
+        });
+        const snap = await getDoc(memberDoc(firebaseUser.uid));
+        if (snap.exists()) setMember({ uid: firebaseUser.uid, ...snap.data() });
+      } catch (e) {
+        console.error('Firestore member sync failed:', e);
+      }
     });
   }, []);
 
