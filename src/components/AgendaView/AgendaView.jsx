@@ -9,10 +9,17 @@ export default function AgendaView({
   year, month,
   getSlotState,
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
+  controlledView, onViewChange,
+  controlledDay,  onDayChange,
 }) {
-  const [view, setView]       = useState('Semaine');
-  const [selectedDay, setDay] = useState(new Date().getDate());
+  const [internalView, setInternalView] = useState('Semaine');
+  const [internalDay,  setInternalDay]  = useState(new Date().getDate());
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const view      = controlledView ?? internalView;
+  const selectedDay = controlledDay ?? internalDay;
+  const setView   = v => { setInternalView(v); onViewChange?.(v); };
+  const setDay    = d => { setInternalDay(d);  onDayChange?.(d); };
 
   return (
     <div>

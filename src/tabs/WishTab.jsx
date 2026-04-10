@@ -21,15 +21,22 @@ export default function WishTab({ member }) {
   const [showTemplate,   setShowTemplate]   = useState(false);
   const [showAddRange,   setShowAddRange]   = useState(false);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const [qDay,   setQDay]   = useState(1);
+  const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
+  const [qDay,   setQDay]   = useState(todayDay);
   const [qStart, setQStart] = useState(36); // 18h00
   const [qEnd,   setQEnd]   = useState(43); // 21h30
+
+  // Controlled view/day for AgendaView
+  const [agendaView, setAgendaView] = useState('Semaine');
+  const [agendaDay,  setAgendaDay]  = useState(todayDay);
 
   function applyAddRange() {
     const base = (qDay - 1) * SLOTS_PER_DAY;
     const toAdd = [];
     for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
     mergeSlots(toAdd);
+    setAgendaView('Semaine');
+    setAgendaDay(qDay);
     setShowAddRange(false);
   }
 
@@ -68,13 +75,23 @@ export default function WishTab({ member }) {
   const canGoPrev = new Date(year, month) > new Date(now.getFullYear(), now.getMonth());
 
   function prevMonth() {
-    if (month === 0) { setYear(y => y - 1); setMonth(11); }
-    else setMonth(m => m - 1);
+    const newMonth = month === 0 ? 11 : month - 1;
+    const newYear  = month === 0 ? year - 1 : year;
+    if (month === 0) setYear(y => y - 1);
+    setMonth(newMonth);
+    const defaultDay = (newYear === now.getFullYear() && newMonth === now.getMonth()) ? now.getDate() : 1;
+    setQDay(defaultDay);
+    setAgendaDay(defaultDay);
   }
   function nextMonth() {
     if (!canGoNext) return;
-    if (month === 11) { setYear(y => y + 1); setMonth(0); }
-    else setMonth(m => m + 1);
+    const newMonth = month === 11 ? 0 : month + 1;
+    const newYear  = month === 11 ? year + 1 : year;
+    if (month === 11) setYear(y => y + 1);
+    setMonth(newMonth);
+    const defaultDay = (newYear === now.getFullYear() && newMonth === now.getMonth()) ? now.getDate() : 1;
+    setQDay(defaultDay);
+    setAgendaDay(defaultDay);
   }
 
   const hoursSelected = slots.length / 2;
@@ -205,6 +222,8 @@ export default function WishTab({ member }) {
           onSlotPointerDown={locked ? undefined : handlePointerDown}
           onSlotPointerEnter={locked ? undefined : handlePointerEnter}
           onSlotPointerUp={locked ? undefined : handlePointerUp}
+          controlledView={agendaView} onViewChange={setAgendaView}
+          controlledDay={agendaDay}   onDayChange={setAgendaDay}
         />
       </div>
 

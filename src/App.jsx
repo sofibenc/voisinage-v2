@@ -82,7 +82,7 @@ export default function App() {
         ))}
       </div>
 
-      <div style={{ flex: 1, padding: 16, overflowY: 'auto' }}>
+      <div style={{ flex: 1, minHeight: 0, padding: 16, overflowY: 'auto' }}>
         <ErrorBoundary>
           {tab === 'wish'     && <WishTab member={member} />}
           {tab === 'planning' && <PlanningTab member={member} />}
