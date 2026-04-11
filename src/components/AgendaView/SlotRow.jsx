@@ -38,7 +38,7 @@ export default function SlotRow({
       }}
     >
       {showTime && (
-        <span style={{ fontSize: 9, color: '#94A3B8', width: 32, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, color: '#475569', width: 32, flexShrink: 0 }}>
           {formatSlotTime(slotId)}
         </span>
       )}

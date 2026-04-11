@@ -88,7 +88,7 @@ export default function WeekView({
           <div key={s} style={{ display: 'flex',
                                 borderBottom: s % 2 === 1 ? '1px solid #E2E8F0' : 'none' }}>
             {/* Hour label gutter */}
-            <div style={{ width: 32, flexShrink: 0, fontSize: 9, color: '#94A3B8',
+            <div style={{ width: 32, flexShrink: 0, fontSize: 11, color: '#475569',
                           display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
               {s % 2 === 0 ? `${String(s / 2).padStart(2, '0')}h` : ''}
             </div>

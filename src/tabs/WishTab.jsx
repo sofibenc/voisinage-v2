@@ -27,20 +27,24 @@ export default function WishTab({ member }) {
   const [showAddRange, setShowAddRange] = useState(false);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
-  const [qDay,   setQDay]   = useState(todayDay);
-  const [qStart, setQStart] = useState(0);  // 00h00
-  const [qEnd,   setQEnd]   = useState(47); // end = 24h00
+  const [qDay,    setQDay]    = useState(todayDay);
+  const [qDayEnd, setQDayEnd] = useState(todayDay);
+  const [qStart,  setQStart]  = useState(0);  // 00h00
+  const [qEnd,    setQEnd]    = useState(47); // end = 24h00
 
   const [agendaView,      setAgendaView]      = useState('Semaine');
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
   const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
   function applyAddRange() {
-    const base = (qDay - 1) * SLOTS_PER_DAY;
+    const endDay = Math.max(qDay, qDayEnd);
     const toAdd = [];
-    for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+    for (let d = qDay; d <= endDay; d++) {
+      const base = (d - 1) * SLOTS_PER_DAY;
+      for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+    }
     mergeSlots(toAdd);
-    setAgendaDay(qDay); // navigates week or switches day depending on active view
+    setAgendaDay(qDay);
     setShowAddRange(false);
   }
 
@@ -62,6 +66,7 @@ export default function WishTab({ member }) {
     setMonth(newMonth);
     const defaultDay = (newYear === now.getFullYear() && newMonth === now.getMonth()) ? now.getDate() : 1;
     setQDay(defaultDay);
+    setQDayEnd(defaultDay);
     setAgendaDay(defaultDay);
   }
   function nextMonth() {
@@ -72,6 +77,7 @@ export default function WishTab({ member }) {
     setMonth(newMonth);
     const defaultDay = (newYear === now.getFullYear() && newMonth === now.getMonth()) ? now.getDate() : 1;
     setQDay(defaultDay);
+    setQDayEnd(defaultDay);
     setAgendaDay(defaultDay);
   }
 
@@ -151,7 +157,7 @@ export default function WishTab({ member }) {
       {/* Add time range */}
       {!locked && (
         <div style={{ marginBottom: 10 }}>
-          <button onClick={() => setShowAddRange(v => { if (!v) setQDay(agendaDay); return !v; })}
+          <button onClick={() => setShowAddRange(v => { if (!v) { setQDay(agendaDay); setQDayEnd(agendaDay); } return !v; })}
             style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                      borderRadius: showAddRange ? '10px 10px 0 0' : 10,
                      padding: '9px 12px', fontSize: 13, color: '#475569',
@@ -164,11 +170,19 @@ export default function WishTab({ member }) {
                           borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
                           display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Jour</label>
-                <select value={qDay} onChange={e => setQDay(Number(e.target.value))}
+                <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Du</label>
+                <select value={qDay} onChange={e => { const d = Number(e.target.value); setQDay(d); if (qDayEnd < d) setQDayEnd(d); }}
                   style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
                            border: '1px solid #E2E8F0', fontSize: 13 }}>
                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>{d} {MONTHS[month]}</option>
+                  ))}
+                </select>
+                <label style={{ fontSize: 12, color: '#64748B' }}>au</label>
+                <select value={qDayEnd} onChange={e => setQDayEnd(Number(e.target.value))}
+                  style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
+                           border: '1px solid #E2E8F0', fontSize: 13 }}>
+                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(d => d >= qDay).map(d => (
                     <option key={d} value={d}>{d} {MONTHS[month]}</option>
                   ))}
                 </select>
