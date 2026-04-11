@@ -85,16 +85,45 @@ export async function releaseSlot(mk, slotId, uid) {
   });
 }
 
+export async function claimSlotRange(mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref = scheduleDoc(mk);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error('No schedule');
+    const data = snap.data();
+
+    // Check for overlap: any slot in range assigned to someone else
+    const conflicts = [];
+    for (let s = fromSlot; s <= toSlot; s++) {
+      const owner = data.assignments[String(s)];
+      if (owner && owner !== uid) conflicts.push(s);
+    }
+    if (conflicts.length > 0) throw new Error('OVERLAP');
+
+    // Claim all slots in range
+    const updates = {};
+    for (let s = fromSlot; s <= toSlot; s++) {
+      const isReleased = data.available.includes(s);
+      const isEmpty    = !data.assignments[String(s)];
+      if (isReleased || isEmpty) updates[`assignments.${s}`] = uid;
+    }
+    let newAvailable = data.available.filter(s => s < fromSlot || s > toSlot);
+    tx.update(ref, { ...updates, available: newAvailable });
+  });
+}
+
 export async function claimSlot(mk, slotId, uid) {
   await runTransaction(db, async tx => {
     const ref = scheduleDoc(mk);
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error('No schedule');
     const data = snap.data();
-    if (!data.available.includes(slotId)) throw new Error('Slot not available');
+    const isReleased = data.available.includes(slotId);
+    const isEmpty    = !data.assignments[String(slotId)];
+    if (!isReleased && !isEmpty) throw new Error('Slot not available');
     tx.update(ref, {
       [`assignments.${slotId}`]: uid,
-      available: arrayRemove(slotId),
+      ...(isReleased ? { available: arrayRemove(slotId) } : {}),
     });
   });
 }

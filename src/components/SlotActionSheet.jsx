@@ -3,9 +3,10 @@ import { formatSlotTime, slotToDay } from '../utils/slots.js';
 export default function SlotActionSheet({ slotId, schedule, member, members, colorOf, onRelease, onClaim, onClose }) {
   if (slotId === null) return null;
 
-  const assignedUid = schedule?.assignments?.[String(slotId)];
-  const isAvailable = schedule?.available?.includes(slotId);
-  const isMine      = assignedUid === member?.uid;
+  const assignedUid  = schedule?.assignments?.[String(slotId)];
+  const isAvailable  = schedule?.available?.includes(slotId);
+  const isClaimable  = schedule && (!assignedUid || isAvailable);
+  const isMine       = assignedUid === member?.uid;
 
   const startTime = formatSlotTime(slotId);
   const endTime   = formatSlotTime(slotId + 1);
@@ -22,7 +23,7 @@ export default function SlotActionSheet({ slotId, schedule, member, members, col
           Jour {day} · {startTime}–{endTime}
         </div>
 
-        {isAvailable && (
+        {isClaimable && (
           <div style={{ background: '#DCFCE7', borderRadius: 8, padding: 10,
                         fontSize: 13, color: '#166534', marginBottom: 12 }}>
             ✦ Créneau libre — disponible à la prise
@@ -40,7 +41,7 @@ export default function SlotActionSheet({ slotId, schedule, member, members, col
           </div>
         )}
 
-        {isAvailable && (
+        {isClaimable && (
           <button onClick={() => { onClaim(slotId); onClose(); }}
             style={{ width: '100%', background: '#16A34A', color: 'white',
                      border: 'none', borderRadius: 12, padding: '14px 0',
