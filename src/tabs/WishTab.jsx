@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useWishlist }  from '../hooks/useWishlist.js';
 import { useSchedule }  from '../hooks/useSchedule.js';
 import { useMembers }   from '../hooks/useMembers.js';
@@ -19,7 +19,21 @@ export default function WishTab({ member }) {
   const mk = monthKey(year, month);
 
   const { slots, mergeSlots, clearRange, clearAll } = useWishlist(member?.uid, mk);
-  const { schedule, deadline, isDeadlinePassed } = useSchedule(year, month);
+  const { schedule, scheduleLoaded, deadline, isDeadlinePassed } = useSchedule(year, month);
+
+  // On first load: if current month is already published, jump to next month
+  const autoJumped = useRef(false);
+  useEffect(() => {
+    if (autoJumped.current) return;
+    if (!scheduleLoaded) return;
+    if (schedule) {
+      autoJumped.current = true;
+      if (month === 11) { setYear(y => y + 1); setMonth(0); }
+      else setMonth(m => m + 1);
+    } else {
+      autoJumped.current = true; // not published, stay here
+    }
+  }, [scheduleLoaded]);
   const { colorOf } = useMembers();
   const myColor = colorOf(member?.uid);
 
@@ -216,26 +230,30 @@ export default function WishTab({ member }) {
         </div>
       )}
 
-      {clearScope && (
-        <button onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
-          style={{ marginBottom: 10, width: '100%', background: 'white',
-                   border: '1px solid #FECACA', borderRadius: 10,
-                   padding: '9px 12px', fontSize: 13, color: '#DC2626',
-                   fontWeight: 600 }}>
-          🗑 {clearScope.label}
-        </button>
-      )}
+      {!schedule && (
+        <>
+          {clearScope && (
+            <button onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
+              style={{ marginBottom: 10, width: '100%', background: 'white',
+                       border: '1px solid #FECACA', borderRadius: 10,
+                       padding: '9px 12px', fontSize: 13, color: '#DC2626',
+                       fontWeight: 600 }}>
+              🗑 {clearScope.label}
+            </button>
+          )}
 
-      <div style={{ background: 'white', borderRadius: 14, padding: 8,
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-        <AgendaView
-          year={year} month={month}
-          getSlotState={getSlotState}
-          controlledView={agendaView} onViewChange={setAgendaView}
-          controlledDay={agendaDay}   onDayChange={setAgendaDay}
-          onWeekStartChange={setAgendaWeekStart}
-        />
-      </div>
+          <div style={{ background: 'white', borderRadius: 14, padding: 8,
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+            <AgendaView
+              year={year} month={month}
+              getSlotState={getSlotState}
+              controlledView={agendaView} onViewChange={setAgendaView}
+              controlledDay={agendaDay}   onDayChange={setAgendaDay}
+              onWeekStartChange={setAgendaWeekStart}
+            />
+          </div>
+        </>
+      )}
 
       {showTemplate && (
         <TemplatePanel

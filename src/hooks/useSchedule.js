@@ -9,14 +9,17 @@ import { monthKey } from '../constants.js';
 
 export function useSchedule(year, month) {
   const mk = monthKey(year, month);
-  const [schedule,   setSchedule]   = useState(null);
-  const [settings,   setSettings]   = useState(null);
-  const [publishing, setPublishing]  = useState(false);
+  const [schedule,       setSchedule]       = useState(null);
+  const [scheduleLoaded, setScheduleLoaded] = useState(false);
+  const [settings,       setSettings]       = useState(null);
+  const [publishing,     setPublishing]     = useState(false);
   const publishingRef = useRef(false);
 
   useEffect(() => {
+    setScheduleLoaded(false);
     return onSnapshot(scheduleDoc(mk), snap => {
       setSchedule(snap.exists() ? snap.data() : null);
+      setScheduleLoaded(true);
     });
   }, [mk]);
 
@@ -39,7 +42,7 @@ export function useSchedule(year, month) {
     ? new Date() > new Date(deadline + 'T23:59:59')
     : false;
 
-  return { schedule, deadline, isDeadlinePassed, publishing, release, claim, claimRange, forcePublish };
+  return { schedule, scheduleLoaded, deadline, isDeadlinePassed, publishing, release, claim, claimRange, forcePublish };
 }
 
 async function doPublish(mk, publishingRef, setPublishing) {
