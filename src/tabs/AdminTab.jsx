@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onSnapshot } from 'firebase/firestore';
-import { settingsDoc, setDeadline, scheduleDoc, unpublishSchedule } from '../firebase.js';
+import { settingsDoc, setDeadline, setSubtitle, scheduleDoc, unpublishSchedule } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useSchedule } from '../hooks/useSchedule.js';
 import { monthKey, MONTHS } from '../constants.js';
@@ -21,12 +21,14 @@ export default function AdminTab({ member }) {
   const { schedule, publishing, forcePublish } = useSchedule(year, month);
   const { members } = useMembers();
 
-  const [deadline, setDeadlineInput] = useState('');
+  const [deadline,  setDeadlineInput]  = useState('');
+  const [subtitle,  setSubtitleInput]  = useState('');
 
   useEffect(() => {
     return onSnapshot(settingsDoc(), snap => {
       const s = snap.exists() ? snap.data() : {};
       setDeadlineInput(s.deadlines?.[mk] ?? defaultDeadline(year, month));
+      setSubtitleInput(s.subtitle ?? '');
     });
   }, [mk]);
 
@@ -45,6 +47,24 @@ export default function AdminTab({ member }) {
           {MONTHS[month]} {year}
         </span>
         <button onClick={nextMonth} style={{ border: 'none', background: 'none', fontSize: 20 }}>›</button>
+      </div>
+
+      {/* Subtitle */}
+      <div style={{ background: 'white', borderRadius: 14, padding: 16,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>NOM DE LA RÉSIDENCE</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={subtitle} onChange={e => setSubtitleInput(e.target.value)}
+            placeholder="Ex : Résidence Karma"
+            maxLength={40}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 8,
+                     border: '1px solid #E2E8F0', fontSize: 14 }} />
+          <button onClick={() => setSubtitle(subtitle.trim())}
+            style={{ background: '#1E293B', color: 'white', border: 'none',
+                     borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 600 }}>
+            OK
+          </button>
+        </div>
       </div>
 
       {/* Deadline */}

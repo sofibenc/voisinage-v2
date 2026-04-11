@@ -4,7 +4,7 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore, doc, collection,
-  getDoc, setDoc, deleteDoc,
+  setDoc, deleteDoc,
   runTransaction, arrayUnion, arrayRemove,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -136,6 +136,10 @@ export const settingsDoc = () => doc(db, 'settings', 'global');
 
 export async function setDeadline(mk, dateStr) {
   await setDoc(settingsDoc(), { deadlines: { [mk]: dateStr } }, { merge: true });
+}
+
+export async function setSubtitle(text) {
+  await setDoc(settingsDoc(), { subtitle: text }, { merge: true });
 }
 
 // ── Spots (private) ───────────────────────────────────────────────────────────

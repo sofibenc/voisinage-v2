@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.js';
-import { loginWithGoogle } from './firebase.js';
+import { loginWithGoogle, settingsDoc } from './firebase.js';
+import { onSnapshot } from 'firebase/firestore';
 import WishTab       from './tabs/WishTab.jsx';
 import PlanningTab   from './tabs/PlanningTab.jsx';
 import SpotsTab      from './tabs/SpotsTab.jsx';
@@ -19,9 +20,17 @@ export default function App() {
   const [tab, setTab] = useState('wish');
   const [authError, setAuthError] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [subtitle,    setSubtitle]    = useState('');
 
   // Reset profile modal when user logs out
   useEffect(() => { if (!user) setShowProfile(false); }, [user]);
+
+  // Load subtitle from settings
+  useEffect(() => {
+    return onSnapshot(settingsDoc(), snap => {
+      setSubtitle(snap.exists() ? (snap.data().subtitle ?? '') : '');
+    });
+  }, []);
 
   async function handleLogin() {
     try {
@@ -64,7 +73,12 @@ export default function App() {
                     background: 'white' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/logo.svg" alt="Voisinage" style={{ width: 32, height: 32, borderRadius: 8 }} />
-          <span style={{ fontWeight: 700, fontSize: 17 }}>Voisinage</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 17, lineHeight: 1.2 }}>Voisinage</div>
+            {subtitle && (
+              <div style={{ fontSize: 11, color: '#64748B', lineHeight: 1.2 }}>{subtitle}</div>
+            )}
+          </div>
         </div>
         <button onClick={() => setShowProfile(true)}
           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer',
