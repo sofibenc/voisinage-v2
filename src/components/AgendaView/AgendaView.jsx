@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DayView   from './DayView.jsx';
 import WeekView  from './WeekView.jsx';
 import MonthView from './MonthView.jsx';
@@ -22,6 +22,13 @@ export default function AgendaView({
   const setView   = v => { setInternalView(v); onViewChange?.(v); };
   const setDay    = d => { setInternalDay(d);  onDayChange?.(d); };
 
+  const dayPickerRef = useRef(null);
+  useEffect(() => {
+    if (view !== 'Jour' || !dayPickerRef.current) return;
+    const btn = dayPickerRef.current.querySelector(`[data-day="${selectedDay}"]`);
+    btn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [selectedDay, view]);
+
   return (
     <div>
       {/* View toggle */}
@@ -39,10 +46,10 @@ export default function AgendaView({
 
       {/* Day picker (Jour view only) */}
       {view === 'Jour' && (
-        <div style={{ display: 'flex', gap: 4, overflowX: 'auto',
+        <div ref={dayPickerRef} style={{ display: 'flex', gap: 4, overflowX: 'auto',
                       marginBottom: 8, paddingBottom: 4 }}>
           {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-            <button key={d} onClick={() => setDay(d)}
+            <button key={d} data-day={d} onClick={() => setDay(d)}
               style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 8,
                        border: 'none', fontSize: 12, fontWeight: 600,
                        background: d === selectedDay ? '#1E293B' : '#F1F5F9',
