@@ -15,7 +15,7 @@ export default function PlanningTab({ member }) {
   const [month, setMonth] = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const { schedule, deadline, isDeadlinePassed, publishing, release, claim, claimRange } = useSchedule(year, month);
+  const { schedule, deadline, isDeadlinePassed, publishing, release, releaseRange, claim, claimRange } = useSchedule(year, month);
   const { members, colorOf } = useMembers();
 
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -24,6 +24,7 @@ export default function PlanningTab({ member }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
   const [showClaimRange, setShowClaimRange] = useState(false);
+  const [rangeMode,      setRangeMode]      = useState('claim'); // 'claim' | 'release'
   const [qDay,    setQDay]    = useState(todayDay);
   const [qDayEnd, setQDayEnd] = useState(todayDay);
   const [qStart,  setQStart]  = useState(0);
@@ -32,12 +33,18 @@ export default function PlanningTab({ member }) {
 
   async function applyClaimRange() {
     setClaimError(null);
-    const endDay = Math.max(qDay, qDayEnd);
+    const endDay   = Math.max(qDay, qDayEnd);
     const fromSlot = (qDay - 1) * SLOTS_PER_DAY + qStart;
     const toSlot   = (endDay - 1) * SLOTS_PER_DAY + qEnd;
     try {
-      await claimRange(fromSlot, toSlot, member.uid);
-      setShowClaimRange(false);
+      if (rangeMode === 'release') {
+        if (!window.confirm('Libérer vos créneaux de cette plage ?')) return;
+        await releaseRange(fromSlot, toSlot, member.uid);
+        setShowClaimRange(false);
+      } else {
+        await claimRange(fromSlot, toSlot, member.uid);
+        setShowClaimRange(false);
+      }
     } catch (e) {
       if (e.message === 'OVERLAP') {
         setClaimError('Chevauchement : un créneau de cette plage est déjà pris par quelqu\'un d\'autre.');
@@ -104,13 +111,25 @@ export default function PlanningTab({ member }) {
                        borderRadius: showClaimRange ? '10px 10px 0 0' : 10,
                        padding: '9px 12px', fontSize: 13, color: '#475569',
                        display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>+ Prendre une plage horaire</span>
+              <span>± Prendre / Libérer une plage horaire</span>
               <span style={{ fontSize: 11, color: '#94A3B8' }}>{showClaimRange ? '▲' : '▼'}</span>
             </button>
             {showClaimRange && (
               <div style={{ background: 'white', border: '1px solid #E2E8F0', borderTop: 'none',
                             borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
                             display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Mode toggle */}
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[['claim', '+ Prendre'], ['release', '− Libérer']].map(([mode, label]) => (
+                    <button key={mode} onClick={() => { setRangeMode(mode); setClaimError(null); }}
+                      style={{ flex: 1, padding: '6px 0', fontSize: 12, fontWeight: 600,
+                               border: 'none', borderRadius: 8,
+                               background: rangeMode === mode ? (mode === 'claim' ? '#16A34A' : '#EF4444') : '#F1F5F9',
+                               color: rangeMode === mode ? 'white' : '#64748B' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
                 {/* Day range */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Du</label>
@@ -156,10 +175,10 @@ export default function PlanningTab({ member }) {
                   </div>
                 )}
                 <button onClick={applyClaimRange} disabled={qStart > qEnd}
-                  style={{ background: qStart > qEnd ? '#94A3B8' : '#16A34A',
+                  style={{ background: qStart > qEnd ? '#94A3B8' : rangeMode === 'release' ? '#EF4444' : '#16A34A',
                            color: 'white', border: 'none', borderRadius: 8,
                            padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
-                  Prendre
+                  {rangeMode === 'release' ? 'Libérer' : 'Prendre'}
                 </button>
               </div>
             )}

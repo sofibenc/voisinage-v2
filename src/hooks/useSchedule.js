@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { onSnapshot, getDocs, getDoc } from 'firebase/firestore';
 import {
   scheduleDoc, settingsDoc, membersCol, wishlistDoc,
-  prevUsageDoc, publishSchedule, releaseSlot, claimSlot, claimSlotRange,
+  prevUsageDoc, publishSchedule, releaseSlot, releaseSlotRange, claimSlot, claimSlotRange,
 } from '../firebase.js';
 import { computeSchedule } from '../utils/schedule.js';
 import { monthKey } from '../constants.js';
@@ -31,9 +31,10 @@ export function useSchedule(year, month) {
     });
   }, [mk]);
 
-  const release    = (slotId, uid) => releaseSlot(mk, slotId, uid);
-  const claim      = (slotId, uid) => claimSlot(mk, slotId, uid);
-  const claimRange = (from, to, uid) => claimSlotRange(mk, from, to, uid);
+  const release      = (slotId, uid) => releaseSlot(mk, slotId, uid);
+  const releaseRange = (from, to, uid) => releaseSlotRange(mk, from, to, uid);
+  const claim        = (slotId, uid) => claimSlot(mk, slotId, uid);
+  const claimRange   = (from, to, uid) => claimSlotRange(mk, from, to, uid);
 
   const forcePublish = () => doPublish(mk, publishingRef, setPublishing);
 
@@ -42,7 +43,7 @@ export function useSchedule(year, month) {
     ? new Date() > new Date(deadline + 'T23:59:59')
     : false;
 
-  return { schedule, scheduleLoaded, deadline, isDeadlinePassed, publishing, release, claim, claimRange, forcePublish };
+  return { schedule, scheduleLoaded, deadline, isDeadlinePassed, publishing, release, releaseRange, claim, claimRange, forcePublish };
 }
 
 async function doPublish(mk, publishingRef, setPublishing) {

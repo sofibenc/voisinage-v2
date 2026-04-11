@@ -69,6 +69,26 @@ export async function publishSchedule(mk, assignments, quotaHours, fairness, pre
   });
 }
 
+export async function releaseSlotRange(mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref = scheduleDoc(mk);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error('No schedule');
+    const data = snap.data();
+    const newAssignments = { ...data.assignments };
+    const toRelease = [];
+    for (let s = fromSlot; s <= toSlot; s++) {
+      if (data.assignments[String(s)] === uid) {
+        delete newAssignments[String(s)];
+        toRelease.push(s);
+      }
+    }
+    if (toRelease.length === 0) return;
+    const newAvailable = [...new Set([...data.available, ...toRelease])];
+    tx.update(ref, { assignments: newAssignments, available: newAvailable });
+  });
+}
+
 export async function releaseSlot(mk, slotId, uid) {
   await runTransaction(db, async tx => {
     const ref = scheduleDoc(mk);

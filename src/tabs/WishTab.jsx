@@ -39,6 +39,7 @@ export default function WishTab({ member }) {
 
   const [showTemplate, setShowTemplate] = useState(false);
   const [showAddRange, setShowAddRange] = useState(false);
+  const [rangeMode,    setRangeMode]    = useState('add'); // 'add' | 'remove'
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
   const [qDay,    setQDay]    = useState(todayDay);
@@ -51,13 +52,20 @@ export default function WishTab({ member }) {
   const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
   function applyAddRange() {
-    const endDay = Math.max(qDay, qDayEnd);
-    const toAdd = [];
-    for (let d = qDay; d <= endDay; d++) {
-      const base = (d - 1) * SLOTS_PER_DAY;
-      for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+    const endDay   = Math.max(qDay, qDayEnd);
+    const fromSlot = (qDay - 1) * SLOTS_PER_DAY + qStart;
+    const toSlot   = (endDay - 1) * SLOTS_PER_DAY + qEnd;
+    if (rangeMode === 'remove') {
+      if (!window.confirm('Supprimer les souhaits de cette plage ?')) return;
+      clearRange(fromSlot, toSlot);
+    } else {
+      const toAdd = [];
+      for (let d = qDay; d <= endDay; d++) {
+        const base = (d - 1) * SLOTS_PER_DAY;
+        for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
+      }
+      mergeSlots(toAdd);
     }
-    mergeSlots(toAdd);
     setAgendaDay(qDay);
     setShowAddRange(false);
   }
@@ -176,13 +184,25 @@ export default function WishTab({ member }) {
                      borderRadius: showAddRange ? '10px 10px 0 0' : 10,
                      padding: '9px 12px', fontSize: 13, color: '#475569',
                      display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>+ Ajouter une plage horaire</span>
+            <span>± Ajouter / Supprimer une plage horaire</span>
             <span style={{ fontSize: 11, color: '#94A3B8' }}>{showAddRange ? '▲' : '▼'}</span>
           </button>
           {showAddRange && (
             <div style={{ background: 'white', border: '1px solid #E2E8F0', borderTop: 'none',
                           borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
                           display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Mode toggle */}
+              <div style={{ display: 'flex', gap: 4 }}>
+                {['add', 'remove'].map(mode => (
+                  <button key={mode} onClick={() => setRangeMode(mode)}
+                    style={{ flex: 1, padding: '6px 0', fontSize: 12, fontWeight: 600,
+                             border: 'none', borderRadius: 8,
+                             background: rangeMode === mode ? (mode === 'add' ? myColor.bg : '#EF4444') : '#F1F5F9',
+                             color: rangeMode === mode ? 'white' : '#64748B' }}>
+                    {mode === 'add' ? '+ Ajouter' : '− Supprimer'}
+                  </button>
+                ))}
+              </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Du</label>
                 <select value={qDay} onChange={e => { const d = Number(e.target.value); setQDay(d); if (qDayEnd < d) setQDayEnd(d); }}
@@ -220,10 +240,10 @@ export default function WishTab({ member }) {
                 </select>
               </div>
               <button onClick={applyAddRange} disabled={qStart > qEnd}
-                style={{ background: qStart > qEnd ? '#94A3B8' : myColor.bg,
+                style={{ background: qStart > qEnd ? '#94A3B8' : rangeMode === 'remove' ? '#EF4444' : myColor.bg,
                          color: 'white', border: 'none', borderRadius: 8,
                          padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
-                Ajouter
+                {rangeMode === 'remove' ? 'Supprimer' : 'Ajouter'}
               </button>
             </div>
           )}
