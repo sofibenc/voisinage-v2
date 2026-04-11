@@ -71,6 +71,7 @@ export default function AgendaView({
           year={year} month={month}
           getSlotState={getSlotState}
           interactive={interactive}
+          targetDay={selectedDay}
           onSlotPointerDown={onSlotPointerDown}
           onSlotPointerEnter={onSlotPointerEnter}
           onSlotPointerUp={onSlotPointerUp}

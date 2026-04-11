@@ -39,8 +39,7 @@ export default function WishTab({ member }) {
     const toAdd = [];
     for (let s = qStart; s <= qEnd; s++) toAdd.push(base + s);
     mergeSlots(toAdd);
-    setAgendaView('Semaine');
-    setAgendaDay(qDay);
+    setAgendaDay(qDay); // navigates week or switches day depending on active view
     setShowAddRange(false);
   }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SLOTS_PER_DAY } from '../../utils/slots.js';
 import { DAYS_FR } from '../../constants.js';
 
@@ -13,6 +13,7 @@ export default function WeekView({
   getSlotState,
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
   interactive = false,
+  targetDay,
 }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
@@ -22,6 +23,13 @@ export default function WeekView({
   const initialStart = Math.max(1, todayDay - dow);
 
   const [startDay, setStartDay] = useState(initialStart);
+
+  // Navigate to the week containing targetDay when it changes
+  useEffect(() => {
+    if (!targetDay) return;
+    const d = (new Date(year, month, targetDay).getDay() + 6) % 7;
+    setStartDay(Math.max(1, targetDay - d));
+  }, [targetDay]);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => startDay + i)
     .filter(d => d >= 1 && d <= daysInMonth);
