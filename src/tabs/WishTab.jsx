@@ -24,8 +24,8 @@ export default function WishTab({ member }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
   const [qDay,   setQDay]   = useState(todayDay);
-  const [qStart, setQStart] = useState(36); // 18h00
-  const [qEnd,   setQEnd]   = useState(43); // 21h30
+  const [qStart, setQStart] = useState(0);  // 00h00
+  const [qEnd,   setQEnd]   = useState(47); // 23h30
 
   // Controlled view/day for AgendaView
   const [agendaView, setAgendaView] = useState('Semaine');
