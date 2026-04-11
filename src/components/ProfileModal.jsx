@@ -52,7 +52,6 @@ export default function ProfileModal({ member, onSaved, onClose }) {
           onKeyDown={e => e.key === 'Enter' && handleSave()}
           maxLength={20}
           placeholder="Ton pseudo…"
-          autoFocus
           style={{ width: '100%', padding: '10px 12px', borderRadius: 10,
                    border: '1.5px solid #E2E8F0', fontSize: 15, fontWeight: 600,
                    outline: 'none', boxSizing: 'border-box', marginBottom: 14 }}
