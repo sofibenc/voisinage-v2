@@ -110,7 +110,7 @@ export default function WishTab({ member }) {
       const from = (agendaDay - 1) * SLOTS_PER_DAY;
       const to   = from + SLOTS_PER_DAY - 1;
       const has  = slots.some(s => s >= from && s <= to);
-      return has ? { label: `Effacer le ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
+      return has ? { label: `Effacer les souhaits du ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
     }
     if (agendaView === 'Semaine') {
       const startDay = agendaWeekStart ?? (() => { const dow = (new Date(year, month, agendaDay).getDay() + 6) % 7; return Math.max(1, agendaDay - dow); })();
