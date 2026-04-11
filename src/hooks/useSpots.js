@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc } from 'firebase/firestore';
-import { spotsCol, spotAvailDoc, claimSpotSlot } from '../firebase.js';
+import { onSnapshot, setDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { spotsCol, spotAvailDoc, claimSpotSlot, claimSpotSlotRange, releaseSpotSlotRange } from '../firebase.js';
 import { monthKey } from '../constants.js';
 
-export function useSpots(year, month) {
+export function useSpots(uid, year, month) {
   const mk = monthKey(year, month);
   const [spots, setSpots] = useState([]);
-  const [availability, setAvailability] = useState({}); // spotId → data
+  const [availability, setAvailability] = useState({}); // spotId → { slots, taken }
 
   useEffect(() => {
     return onSnapshot(spotsCol(), snap => {
@@ -27,24 +27,46 @@ export function useSpots(year, month) {
     return () => unsubs.forEach(u => u());
   }, [spots, mk]);
 
-  async function addSpot(ownerUid, name, color) {
-    await addDoc(spotsCol(), { ownerUid, name, color });
+  const mySpot    = spots.find(s => s.ownerUid === uid) ?? null;
+  const otherSpots = spots.filter(s => s.ownerUid !== uid);
+
+  // Ensure my spot exists (called on first "Proposer ma place")
+  async function ensureMySpot(name) {
+    if (mySpot) return mySpot.id;
+    const ref = await addDoc(spotsCol(), { ownerUid: uid, name });
+    return ref.id;
   }
 
-  async function toggleSpotSlot(spotId, slotId, ownerUid) {
-    const ref = spotAvailDoc(spotId, mk);
-    const data = availability[spotId];
-    const isAvailable = data?.slots?.includes(slotId);
-    if (isAvailable) {
-      await updateDoc(ref, { slots: arrayRemove(slotId) });
-    } else {
-      await setDoc(ref, { ownerUid, slots: arrayUnion(slotId), taken: {} }, { merge: true });
-    }
+  // Add slots to my availability
+  async function mergeMySlots(spotId, toAdd) {
+    const ref  = spotAvailDoc(spotId, mk);
+    const data = availability[spotId] ?? { slots: [], taken: {} };
+    const next = [...new Set([...data.slots, ...toAdd])].sort((a, b) => a - b);
+    await setDoc(ref, { ownerUid: uid, slots: next, taken: data.taken ?? {} }, { merge: true });
   }
 
-  async function claimSlot(spotId, slotId, uid) {
+  // Remove slots from my availability (only non-taken ones)
+  async function clearMyRange(spotId, fromSlot, toSlot) {
+    const ref  = spotAvailDoc(spotId, mk);
+    const data = availability[spotId] ?? { slots: [], taken: {} };
+    const next = data.slots.filter(s => s < fromSlot || s > toSlot);
+    await setDoc(ref, { ownerUid: uid, slots: next, taken: data.taken ?? {} }, { merge: true });
+  }
+
+  // Claim a single slot from another neighbor's spot
+  async function claimSlot(spotId, slotId) {
     await claimSpotSlot(spotId, mk, slotId, uid);
   }
 
-  return { spots, availability, addSpot, toggleSpotSlot, claimSlot };
+  // Claim a range of slots from another neighbor's spot
+  async function claimNeighborRange(spotId, fromSlot, toSlot) {
+    await claimSpotSlotRange(spotId, mk, fromSlot, toSlot, uid);
+  }
+
+  // Release a range of slots previously claimed from a neighbor's spot
+  async function releaseNeighborRange(spotId, fromSlot, toSlot) {
+    await releaseSpotSlotRange(spotId, mk, fromSlot, toSlot, uid);
+  }
+
+  return { spots, mySpot, otherSpots, availability, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange };
 }

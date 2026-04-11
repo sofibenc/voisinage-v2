@@ -178,3 +178,33 @@ export async function claimSpotSlot(spotId, mk, slotId, uid) {
     tx.update(ref, { [`taken.${slotId}`]: uid });
   });
 }
+
+export async function claimSpotSlotRange(spotId, mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref = spotAvailDoc(spotId, mk);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error('UNAVAILABLE');
+    const data = snap.data();
+    const updates = {};
+    for (let s = fromSlot; s <= toSlot; s++) {
+      if (!data.slots.includes(s)) throw new Error('UNAVAILABLE');
+      if (data.taken?.[String(s)] && data.taken[String(s)] !== uid) throw new Error('OVERLAP');
+      if (!data.taken?.[String(s)]) updates[`taken.${s}`] = uid;
+    }
+    if (Object.keys(updates).length > 0) tx.update(ref, updates);
+  });
+}
+
+export async function releaseSpotSlotRange(spotId, mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref = spotAvailDoc(spotId, mk);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const updates = {};
+    for (let s = fromSlot; s <= toSlot; s++) {
+      if (data.taken?.[String(s)] === uid) updates[`taken.${s}`] = null;
+    }
+    if (Object.keys(updates).length > 0) tx.update(ref, updates);
+  });
+}
