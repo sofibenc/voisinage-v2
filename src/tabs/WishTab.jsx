@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useWishlist }  from '../hooks/useWishlist.js';
 import { useSchedule }  from '../hooks/useSchedule.js';
 import { useMembers }   from '../hooks/useMembers.js';
@@ -7,27 +7,30 @@ import TemplatePanel    from '../components/TemplatePanel.jsx';
 import { MONTHS, monthKey } from '../constants.js';
 import { SLOTS_PER_DAY } from '../utils/slots.js';
 
+// Format slot start time: slot 0 → "00h00", slot 1 → "00h30", …
+function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
+// Format slot end time: slot 0 ends at 00h30, slot 47 ends at 24h00
+function fmtEnd(s) { return s === 47 ? '24h00' : fmtStart(s + 1); }
+
 export default function WishTab({ member }) {
   const now   = new Date();
   const [year, setYear]   = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const { slots, toggleSlot, setSlotRange, mergeSlots, clearAll } = useWishlist(member?.uid, mk);
-  const { schedule, deadline, isDeadlinePassed }      = useSchedule(year, month);
+  const { slots, mergeSlots, clearAll } = useWishlist(member?.uid, mk);
+  const { schedule, deadline, isDeadlinePassed } = useSchedule(year, month);
   const { colorOf } = useMembers();
   const myColor = colorOf(member?.uid);
 
-  const [showTemplate,   setShowTemplate]   = useState(false);
-  const [showAddRange,   setShowAddRange]   = useState(false);
-  const [editMode,       setEditMode]       = useState(false);
+  const [showTemplate, setShowTemplate] = useState(false);
+  const [showAddRange, setShowAddRange] = useState(false);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
   const [qDay,   setQDay]   = useState(todayDay);
   const [qStart, setQStart] = useState(0);  // 00h00
-  const [qEnd,   setQEnd]   = useState(47); // 23h30
+  const [qEnd,   setQEnd]   = useState(47); // end = 24h00
 
-  // Controlled view/day for AgendaView
   const [agendaView, setAgendaView] = useState('Semaine');
   const [agendaDay,  setAgendaDay]  = useState(todayDay);
 
@@ -41,36 +44,13 @@ export default function WishTab({ member }) {
     setShowAddRange(false);
   }
 
-  // Drag selection
-  const dragRef = useRef({ active: false, startSlot: null, wasSelected: null });
-
   const getSlotState = useCallback(sid => {
     if (slots.includes(sid)) return { state: 'mine', color: myColor, label: '' };
     return { state: 'empty', color: null, label: '' };
   }, [slots, myColor]);
 
-  const handlePointerDown = useCallback((sid, e) => {
-    e.currentTarget?.setPointerCapture?.(e.pointerId);
-    const wasSelected = slots.includes(sid);
-    dragRef.current = { active: true, startSlot: sid, wasSelected };
-    // Toggle the clicked slot immediately
-    toggleSlot(sid);
-  }, [slots, toggleSlot]);
-
-  const handlePointerEnter = useCallback(sid => {
-    if (!dragRef.current.active) return;
-    // Extend selection from startSlot to current sid
-    // If drag started on an unselected slot → we're selecting; else deselecting
-    setSlotRange(dragRef.current.startSlot, sid, !dragRef.current.wasSelected);
-  }, [setSlotRange]);
-
-  const handlePointerUp = useCallback(() => {
-    dragRef.current.active = false;
-  }, []);
-
   const locked = isDeadlinePassed || !!schedule;
 
-  // Month navigation (max 3 months ahead)
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
   const canGoPrev = new Date(year, month) > new Date(now.getFullYear(), now.getMonth());
@@ -154,7 +134,6 @@ export default function WishTab({ member }) {
         </div>
       )}
 
-      {/* Agenda */}
       {/* Add time range */}
       {!locked && (
         <div style={{ marginBottom: 10 }}>
@@ -176,9 +155,7 @@ export default function WishTab({ member }) {
                   style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
                            border: '1px solid #E2E8F0', fontSize: 13 }}>
                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                    <option key={d} value={d}>
-                      {d} {MONTHS[month]}
-                    </option>
+                    <option key={d} value={d}>{d} {MONTHS[month]}</option>
                   ))}
                 </select>
               </div>
@@ -188,9 +165,7 @@ export default function WishTab({ member }) {
                   style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
                            border: '1px solid #E2E8F0', fontSize: 13 }}>
                   {Array.from({ length: 48 }, (_, s) => (
-                    <option key={s} value={s}>
-                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
-                    </option>
+                    <option key={s} value={s}>{fmtStart(s)}</option>
                   ))}
                 </select>
                 <label style={{ fontSize: 12, color: '#64748B' }}>à</label>
@@ -198,9 +173,7 @@ export default function WishTab({ member }) {
                   style={{ flex: 1, padding: '7px 8px', borderRadius: 8,
                            border: '1px solid #E2E8F0', fontSize: 13 }}>
                   {Array.from({ length: 48 }, (_, s) => (
-                    <option key={s} value={s}>
-                      {String(Math.floor(s/2)).padStart(2,'0')}h{s%2?'30':'00'}
-                    </option>
+                    <option key={s} value={s}>{fmtEnd(s)}</option>
                   ))}
                 </select>
               </div>
@@ -215,30 +188,13 @@ export default function WishTab({ member }) {
         </div>
       )}
 
-      {/* Edit / Scroll toggle */}
-      {!locked && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-          <button onClick={() => setEditMode(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6,
-                     background: editMode ? myColor.bg : '#F1F5F9',
-                     color: editMode ? 'white' : '#64748B',
-                     border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: 600 }}>
-            {editMode ? '✏️ Édition' : '☰ Scroll'}
-          </button>
-        </div>
-      )}
-
       <div style={{ background: 'white', borderRadius: 14, padding: 8,
                     boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
         <AgendaView
           year={year} month={month}
           getSlotState={getSlotState}
-          onSlotPointerDown={locked || !editMode ? undefined : handlePointerDown}
-          onSlotPointerEnter={locked || !editMode ? undefined : handlePointerEnter}
-          onSlotPointerUp={locked || !editMode ? undefined : handlePointerUp}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
-          interactive={editMode}
         />
       </div>
 
