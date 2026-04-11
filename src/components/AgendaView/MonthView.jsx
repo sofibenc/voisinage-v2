@@ -10,7 +10,7 @@ import { DAYS_FR } from '../../constants.js';
  *   year, month
  *   getSlotState — fn(slotId) → { state, color, label }
  */
-export default function MonthView({ year, month, getSlotState }) {
+export default function MonthView({ year, month, getSlotState, onDayClick }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDow    = (new Date(year, month, 1).getDay() + 6) % 7; // 0=Mon
 
@@ -36,11 +36,12 @@ export default function MonthView({ year, month, getSlotState }) {
   for (let d = 1; d <= daysInMonth; d++) {
     const { color, mineCount } = daySummary(d);
     cells.push(
-      <div key={d} style={{
+      <div key={d} onClick={() => onDayClick?.(d)} style={{
         aspectRatio: '1', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', borderRadius: 8,
         background: color ? `${color}22` : '#F8FAFC',
         border: `1px solid ${color ?? '#E2E8F0'}`, fontSize: 11,
+        cursor: onDayClick ? 'pointer' : 'default',
       }}>
         <span style={{ fontWeight: 700, color: '#1E293B' }}>{d}</span>
         {mineCount > 0 && (

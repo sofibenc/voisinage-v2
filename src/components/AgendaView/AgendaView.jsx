@@ -79,7 +79,8 @@ export default function AgendaView({
       )}
 
       {view === 'Mois' && (
-        <MonthView year={year} month={month} getSlotState={getSlotState} />
+        <MonthView year={year} month={month} getSlotState={getSlotState}
+          onDayClick={d => { setDay(d); setView('Jour'); }} />
       )}
     </div>
   );
