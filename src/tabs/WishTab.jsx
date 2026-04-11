@@ -110,7 +110,7 @@ export default function WishTab({ member }) {
       const from = (agendaDay - 1) * SLOTS_PER_DAY;
       const to   = from + SLOTS_PER_DAY - 1;
       const has  = slots.some(s => s >= from && s <= to);
-      return has ? { label: `Effacer les souhaits du ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
+      return { label: `Effacer les souhaits du ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to), has };
     }
     if (agendaView === 'Semaine') {
       const startDay = agendaWeekStart ?? (() => { const dow = (new Date(year, month, agendaDay).getDay() + 6) % 7; return Math.max(1, agendaDay - dow); })();
@@ -118,10 +118,10 @@ export default function WishTab({ member }) {
       const from     = (startDay - 1) * SLOTS_PER_DAY;
       const to       = (endDay - 1) * SLOTS_PER_DAY + SLOTS_PER_DAY - 1;
       const has      = slots.some(s => s >= from && s <= to);
-      return has ? { label: `Effacer sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
+      return { label: `Effacer sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => clearRange(from, to), has };
     }
-    // Mois
-    return slots.length > 0 ? { label: `Effacer tous les souhaits de ${MONTHS[month]}`, action: clearAll } : null;
+    // Mois — masqué si rien à effacer
+    return slots.length > 0 ? { label: `Effacer tous les souhaits de ${MONTHS[month]}`, action: clearAll, has: true } : null;
   }
 
   const clearScope = !locked ? getClearScope() : null;
@@ -253,11 +253,14 @@ export default function WishTab({ member }) {
       {!schedule && (
         <>
           {clearScope && (
-            <button onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
+            <button
+              disabled={!clearScope.has}
+              onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
               style={{ marginBottom: 10, width: '100%', background: 'white',
-                       border: '1px solid #FECACA', borderRadius: 10,
-                       padding: '9px 12px', fontSize: 13, color: '#DC2626',
-                       fontWeight: 600 }}>
+                       border: `1px solid ${clearScope.has ? '#FECACA' : '#E2E8F0'}`,
+                       borderRadius: 10, padding: '9px 12px', fontSize: 13,
+                       color: clearScope.has ? '#DC2626' : '#CBD5E1',
+                       fontWeight: 600, cursor: clearScope.has ? 'pointer' : 'default' }}>
               🗑 {clearScope.label}
             </button>
           )}
