@@ -29,7 +29,8 @@ export default function DayView({
         state={state}
         color={color}
         label={label}
-        showTime={s % 2 === 0}
+        showTime={true}
+        isHalfHour={s % 2 === 1}
         interactive={interactive}
         onPointerDown={onSlotPointerDown ? e => onSlotPointerDown(sid, e) : undefined}
         onPointerEnter={onSlotPointerEnter ? () => onSlotPointerEnter(sid) : undefined}

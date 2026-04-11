@@ -12,7 +12,8 @@ import { formatSlotTime } from '../../utils/slots.js';
  */
 export default function SlotRow({
   slotId, state = 'empty', color, label = '',
-  showTime = false, onPointerDown, onPointerEnter, onPointerUp, onClick,
+  showTime = false, isHalfHour = false,
+  onPointerDown, onPointerEnter, onPointerUp, onClick,
   interactive = false,
 }) {
   const bg = state === 'mine'      ? color?.bg    :
@@ -38,7 +39,9 @@ export default function SlotRow({
       }}
     >
       {showTime && (
-        <span style={{ fontSize: 11, color: '#475569', width: 32, flexShrink: 0 }}>
+        <span style={{ fontSize: isHalfHour ? 9 : 11,
+                       color: isHalfHour ? '#94A3B8' : '#475569',
+                       width: 32, flexShrink: 0 }}>
           {formatSlotTime(slotId)}
         </span>
       )}
