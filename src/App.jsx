@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.js';
-import { loginWithGoogle, logout } from './firebase.js';
-import WishTab     from './tabs/WishTab.jsx';
-import PlanningTab from './tabs/PlanningTab.jsx';
-import SpotsTab    from './tabs/SpotsTab.jsx';
-import AdminTab    from './tabs/AdminTab.jsx';
+import { loginWithGoogle } from './firebase.js';
+import WishTab       from './tabs/WishTab.jsx';
+import PlanningTab   from './tabs/PlanningTab.jsx';
+import SpotsTab      from './tabs/SpotsTab.jsx';
+import AdminTab      from './tabs/AdminTab.jsx';
+import ProfileModal  from './components/ProfileModal.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 const TABS = [
@@ -14,9 +15,13 @@ const TABS = [
 ];
 
 export default function App() {
-  const { user, member } = useAuth();
+  const { user, member, refreshMember } = useAuth();
   const [tab, setTab] = useState('wish');
   const [authError, setAuthError] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
+
+  // Reset profile modal when user logs out
+  useEffect(() => { if (!user) setShowProfile(false); }, [user]);
 
   async function handleLogin() {
     try {
@@ -58,16 +63,20 @@ export default function App() {
                     justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0',
                     background: 'white' }}>
         <span style={{ fontWeight: 700, fontSize: 17 }}>Voisinage</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => setShowProfile(true)}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                   display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 13, color: '#64748B' }}>
             {member?.name || user.displayName}
           </span>
-          <button onClick={logout}
-            style={{ background: 'none', border: '1px solid #E2E8F0',
-                     borderRadius: 8, padding: '4px 10px', fontSize: 12 }}>
-            Déco
-          </button>
-        </div>
+          {member?.photoURL
+            ? <img src={member.photoURL} alt="" referrerPolicy="no-referrer"
+                   style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+            : <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E2E8F0',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 16 }}>👤</div>
+          }
+        </button>
       </div>
 
       <div style={{ display: 'flex', background: 'white', borderBottom: '1px solid #E2E8F0' }}>
@@ -90,6 +99,14 @@ export default function App() {
           {tab === 'admin'    && member?.isAdmin && <AdminTab member={member} />}
         </ErrorBoundary>
       </div>
+
+      {showProfile && member && (
+        <ProfileModal
+          member={member}
+          onSaved={refreshMember}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
 }
