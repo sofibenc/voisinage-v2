@@ -31,8 +31,9 @@ export default function WishTab({ member }) {
   const [qStart, setQStart] = useState(0);  // 00h00
   const [qEnd,   setQEnd]   = useState(47); // end = 24h00
 
-  const [agendaView, setAgendaView] = useState('Semaine');
-  const [agendaDay,  setAgendaDay]  = useState(todayDay);
+  const [agendaView,      setAgendaView]      = useState('Semaine');
+  const [agendaDay,       setAgendaDay]       = useState(todayDay);
+  const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
   function applyAddRange() {
     const base = (qDay - 1) * SLOTS_PER_DAY;
@@ -84,8 +85,7 @@ export default function WishTab({ member }) {
       return has ? { label: `Effacer le ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
     }
     if (agendaView === 'Semaine') {
-      const dow      = (new Date(year, month, agendaDay).getDay() + 6) % 7;
-      const startDay = Math.max(1, agendaDay - dow);
+      const startDay = agendaWeekStart ?? (() => { const dow = (new Date(year, month, agendaDay).getDay() + 6) % 7; return Math.max(1, agendaDay - dow); })();
       const endDay   = Math.min(daysInMonth, startDay + 6);
       const from     = (startDay - 1) * SLOTS_PER_DAY;
       const to       = (endDay - 1) * SLOTS_PER_DAY + SLOTS_PER_DAY - 1;
@@ -219,6 +219,7 @@ export default function WishTab({ member }) {
           getSlotState={getSlotState}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
+          onWeekStartChange={setAgendaWeekStart}
         />
       </div>
 

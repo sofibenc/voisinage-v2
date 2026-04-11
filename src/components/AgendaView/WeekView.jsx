@@ -14,6 +14,7 @@ export default function WeekView({
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
   interactive = false,
   targetDay,
+  onWeekStartChange,
 }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
@@ -30,6 +31,11 @@ export default function WeekView({
     const d = (new Date(year, month, targetDay).getDay() + 6) % 7;
     setStartDay(Math.max(1, targetDay - d));
   }, [targetDay]);
+
+  // Notify parent of current week start
+  useEffect(() => {
+    onWeekStartChange?.(startDay);
+  }, [startDay]);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => startDay + i)
     .filter(d => d >= 1 && d <= daysInMonth);

@@ -11,6 +11,7 @@ export default function AgendaView({
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
   controlledView, onViewChange,
   controlledDay,  onDayChange,
+  onWeekStartChange,
   interactive = false,
 }) {
   const [internalView, setInternalView] = useState('Semaine');
@@ -79,6 +80,7 @@ export default function AgendaView({
           getSlotState={getSlotState}
           interactive={interactive}
           targetDay={selectedDay}
+          onWeekStartChange={onWeekStartChange}
           onSlotPointerDown={onSlotPointerDown}
           onSlotPointerEnter={onSlotPointerEnter}
           onSlotPointerUp={onSlotPointerUp}
