@@ -158,7 +158,7 @@ export default function WishTab({ member }) {
       {/* Add time range */}
       {!locked && (
         <div style={{ marginBottom: 10 }}>
-          <button onClick={() => setShowAddRange(v => !v)}
+          <button onClick={() => setShowAddRange(v => { if (!v) setQDay(agendaDay); return !v; })}
             style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                      borderRadius: showAddRange ? '10px 10px 0 0' : 10,
                      padding: '9px 12px', fontSize: 13, color: '#475569',
