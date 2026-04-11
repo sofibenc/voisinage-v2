@@ -106,7 +106,7 @@ export default function AdminTab({ member }) {
         </button>
       )}
 
-      {!schedule && (
+      {!schedule && !isPastMonth && (
         <button onClick={forcePublish} disabled={publishing}
           style={{ width: '100%', background: publishing ? '#94A3B8' : '#1E293B',
                    color: 'white', border: 'none', borderRadius: 12,
