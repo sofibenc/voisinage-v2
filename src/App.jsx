@@ -62,7 +62,10 @@ export default function App() {
       <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center',
                     justifyContent: 'space-between', borderBottom: '1px solid #E2E8F0',
                     background: 'white' }}>
-        <span style={{ fontWeight: 700, fontSize: 17 }}>Voisinage</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="/logo.svg" alt="Voisinage" style={{ width: 32, height: 32, borderRadius: 8 }} />
+          <span style={{ fontWeight: 700, fontSize: 17 }}>Voisinage</span>
+        </div>
         <button onClick={() => setShowProfile(true)}
           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                    display: 'flex', alignItems: 'center', gap: 8 }}>
