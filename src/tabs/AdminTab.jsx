@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onSnapshot } from 'firebase/firestore';
-import { settingsDoc, setDeadline, scheduleDoc } from '../firebase.js';
+import { settingsDoc, setDeadline, scheduleDoc, unpublishSchedule } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useSchedule } from '../hooks/useSchedule.js';
 import { monthKey, MONTHS } from '../constants.js';
@@ -16,6 +16,7 @@ export default function AdminTab({ member }) {
   const [year, setYear]     = useState(now.getFullYear());
   const [month, setMonth]   = useState(now.getMonth());
   const mk = monthKey(year, month);
+  const isPastMonth = new Date(year, month + 1, 0) < new Date(now.getFullYear(), now.getMonth(), 1);
 
   const { schedule, publishing, forcePublish } = useSchedule(year, month);
   const { members } = useMembers();
@@ -95,6 +96,14 @@ export default function AdminTab({ member }) {
                       textAlign: 'center', color: '#94A3B8', fontSize: 13, marginBottom: 12 }}>
           Planning non encore publié pour ce mois.
         </div>
+      )}
+
+      {schedule && !isPastMonth && (
+        <button onClick={() => unpublishSchedule(mk)}
+          style={{ width: '100%', background: '#FEF2F2', color: '#DC2626', border: '2px solid #FECACA',
+                   borderRadius: 12, padding: '12px 0', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
+          Dépublier le planning
+        </button>
       )}
 
       {!schedule && (

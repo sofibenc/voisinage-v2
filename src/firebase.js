@@ -4,7 +4,7 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore, doc, collection,
-  getDoc, setDoc,
+  getDoc, setDoc, deleteDoc,
   runTransaction, arrayUnion, arrayRemove,
   serverTimestamp,
 } from 'firebase/firestore';
@@ -44,6 +44,10 @@ export async function setWishlist(uid, mk, slots) {
 
 // ── Schedules ─────────────────────────────────────────────────────────────────
 export const scheduleDoc = mk => doc(db, 'schedules', mk);
+
+export async function unpublishSchedule(mk) {
+  await deleteDoc(scheduleDoc(mk));
+}
 
 export async function publishSchedule(mk, assignments, quotaHours, fairness, prevUsageByUid) {
   // Convert numeric keys to strings for Firestore
