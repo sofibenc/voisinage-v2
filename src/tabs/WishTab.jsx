@@ -18,7 +18,7 @@ export default function WishTab({ member }) {
   const [month, setMonth] = useState(now.getMonth());
   const mk = monthKey(year, month);
 
-  const { slots, mergeSlots, clearAll } = useWishlist(member?.uid, mk);
+  const { slots, mergeSlots, clearRange, clearAll } = useWishlist(member?.uid, mk);
   const { schedule, deadline, isDeadlinePassed } = useSchedule(year, month);
   const { colorOf } = useMembers();
   const myColor = colorOf(member?.uid);
@@ -76,6 +76,28 @@ export default function WishTab({ member }) {
 
   const hoursSelected = slots.length / 2;
 
+  function getClearScope() {
+    if (agendaView === 'Jour') {
+      const from = (agendaDay - 1) * SLOTS_PER_DAY;
+      const to   = from + SLOTS_PER_DAY - 1;
+      const has  = slots.some(s => s >= from && s <= to);
+      return has ? { label: `Effacer le ${agendaDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
+    }
+    if (agendaView === 'Semaine') {
+      const dow      = (new Date(year, month, agendaDay).getDay() + 6) % 7;
+      const startDay = Math.max(1, agendaDay - dow);
+      const endDay   = Math.min(daysInMonth, startDay + 6);
+      const from     = (startDay - 1) * SLOTS_PER_DAY;
+      const to       = (endDay - 1) * SLOTS_PER_DAY + SLOTS_PER_DAY - 1;
+      const has      = slots.some(s => s >= from && s <= to);
+      return has ? { label: `Effacer sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => clearRange(from, to) } : null;
+    }
+    // Mois
+    return slots.length > 0 ? { label: `Effacer tous les souhaits de ${MONTHS[month]}`, action: clearAll } : null;
+  }
+
+  const clearScope = !locked ? getClearScope() : null;
+
   return (
     <div>
       {/* Month navigation */}
@@ -123,13 +145,6 @@ export default function WishTab({ member }) {
                      borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 600 }}>
             Template
           </button>
-          {slots.length > 0 && (
-            <button onClick={clearAll}
-              style={{ background: 'none', border: 'none', color: myColor.text,
-                       fontSize: 11, fontWeight: 700, opacity: 0.7 }}>
-              ✕ Tout effacer
-            </button>
-          )}
         </div>
       )}
 
@@ -185,6 +200,16 @@ export default function WishTab({ member }) {
             </div>
           )}
         </div>
+      )}
+
+      {clearScope && (
+        <button onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
+          style={{ marginBottom: 10, width: '100%', background: 'white',
+                   border: '1px solid #FECACA', borderRadius: 10,
+                   padding: '9px 12px', fontSize: 13, color: '#DC2626',
+                   fontWeight: 600 }}>
+          🗑 {clearScope.label}
+        </button>
       )}
 
       <div style={{ background: 'white', borderRadius: 14, padding: 8,
