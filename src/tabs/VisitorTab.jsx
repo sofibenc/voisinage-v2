@@ -9,7 +9,7 @@ import { SLOTS_PER_DAY }   from '../utils/slots.js';
 function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
 function fmtEnd(s)   { return s === 47 ? '24h00' : fmtStart(s + 1); }
 
-export default function VisitorTab({ member }) {
+export default function VisitorTab({ member, operationalMode = false }) {
   const now   = new Date();
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -63,11 +63,31 @@ export default function VisitorTab({ member }) {
     setQDay(d); setQDayEnd(d); setAgendaDay(d);
   }
 
+  // Current half-hour slot index
+  function nowSlot() {
+    const n = new Date();
+    return (n.getHours() * 2) + (n.getMinutes() >= 30 ? 1 : 0);
+  }
+  function currentDaySlotOffset() {
+    // absolute slot index for "now" within the month
+    const n = new Date();
+    if (n.getFullYear() !== year || n.getMonth() !== month) return -1;
+    return (n.getDate() - 1) * SLOTS_PER_DAY + nowSlot();
+  }
+
   async function applyForm() {
     setFormError(null);
     const endDay  = Math.max(qDay, qDayEnd);
     const fromSlot = (qDay - 1) * SLOTS_PER_DAY + qStart;
     const toSlot   = (endDay - 1) * SLOTS_PER_DAY + qEnd;
+
+    if (operationalMode && !member?.isAdmin) {
+      const cur = currentDaySlotOffset();
+      if (cur >= 0 && fromSlot <= cur) {
+        setFormError('Mode opérationnel : impossible de modifier des créneaux passés.');
+        return;
+      }
+    }
     try {
       if (rangeMode === 'remove') {
         if (!window.confirm('Annuler les réservations de cette plage ?')) return;
@@ -105,7 +125,7 @@ export default function VisitorTab({ member }) {
       const has  = Object.entries(assignments).some(([sid, uid]) => {
         const s = Number(sid); return uid === member?.uid && s >= from && s <= to;
       });
-      return { label: `Annuler mes réservations du ${agendaDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has };
+      return { label: `Annuler mes réservations du ${agendaDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has, from };
     }
     if (agendaView === 'Semaine') {
       const startDay = agendaWeekStart ?? (() => { const dow = (new Date(year, month, agendaDay).getDay() + 6) % 7; return Math.max(1, agendaDay - dow); })();
@@ -115,10 +135,10 @@ export default function VisitorTab({ member }) {
       const has      = Object.entries(assignments).some(([sid, uid]) => {
         const s = Number(sid); return uid === member?.uid && s >= from && s <= to;
       });
-      return { label: `Annuler sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has };
+      return { label: `Annuler sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has, from };
     }
     const hasAny = Object.values(assignments).some(uid => uid === member?.uid);
-    return hasAny ? { label: `Annuler toutes mes réservations de ${MONTHS[month]}`, action: () => releaseRange(0, daysInMonth * SLOTS_PER_DAY - 1), has: true } : null;
+    return hasAny ? { label: `Annuler toutes mes réservations de ${MONTHS[month]}`, action: () => releaseRange(0, daysInMonth * SLOTS_PER_DAY - 1), has: true, from: 0 } : null;
   }
 
   const clearScope = getClearScope();
@@ -263,6 +283,13 @@ export default function VisitorTab({ member }) {
         <button
           disabled={!clearScope.has}
           onClick={async () => {
+            if (operationalMode && !member?.isAdmin) {
+              const cur = currentDaySlotOffset();
+              if (cur >= 0 && clearScope.from <= cur) {
+                setClearError('Mode opérationnel : impossible de modifier des créneaux passés.');
+                return;
+              }
+            }
             if (!window.confirm(clearScope.label + ' ?')) return;
             setClearError(null);
             try { await clearScope.action(); }

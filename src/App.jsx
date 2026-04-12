@@ -17,12 +17,15 @@ export default function App() {
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [subtitle,   setSubtitle]   = useState('');
+  const [subtitle,         setSubtitle]         = useState('');
+  const [operationalMode,  setOperationalModeState] = useState(false);
 
   useEffect(() => { if (!user) setShowProfile(false); }, [user]);
   useEffect(() => {
     return onSnapshot(settingsDoc(), snap => {
-      setSubtitle(snap.exists() ? (snap.data().subtitle ?? '') : '');
+      const data = snap.exists() ? snap.data() : {};
+      setSubtitle(data.subtitle ?? '');
+      setOperationalModeState(data.operationalMode ?? false);
     });
   }, []);
 
@@ -116,7 +119,7 @@ export default function App() {
       {/* ── Content ── */}
       <div style={{ flex: 1, minHeight: 0, padding: 16, overflowY: 'auto' }}>
         <ErrorBoundary>
-          {section === 'visitor'  && <VisitorTab member={member} />}
+          {section === 'visitor'  && <VisitorTab member={member} operationalMode={operationalMode} />}
           {section === 'myspots'  && <SpotsTab member={member} />}
           {section === 'admin'    && member?.isAdmin && <AdminTab member={member} />}
         </ErrorBoundary>

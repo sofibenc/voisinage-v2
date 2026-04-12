@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onSnapshot } from 'firebase/firestore';
-import { settingsDoc, setSubtitle } from '../firebase.js';
+import { settingsDoc, setSubtitle, setOperationalMode } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useUsageStats } from '../hooks/useUsageStats.js';
 import { MONTHS } from '../constants.js';
@@ -13,11 +13,14 @@ export default function AdminTab({ member }) {
   const { members } = useMembers();
   const { stats }   = useUsageStats(members, year, month);
 
-  const [subtitle, setSubtitleInput] = useState('');
+  const [subtitle,        setSubtitleInput]  = useState('');
+  const [operationalMode, setOperationalModeState] = useState(false);
 
   useEffect(() => {
     return onSnapshot(settingsDoc(), snap => {
-      setSubtitleInput(snap.exists() ? (snap.data().subtitle ?? '') : '');
+      const data = snap.exists() ? snap.data() : {};
+      setSubtitleInput(data.subtitle ?? '');
+      setOperationalModeState(data.operationalMode ?? false);
     });
   }, []);
 
@@ -40,6 +43,26 @@ export default function AdminTab({ member }) {
             style={{ background: '#1E293B', color: 'white', border: 'none',
                      borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 600 }}>
             OK
+          </button>
+        </div>
+      </div>
+
+      {/* Operational mode toggle */}
+      <div style={{ background: 'white', borderRadius: 14, padding: 16,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>MODE OPÉRATIONNEL</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, fontSize: 13, color: '#475569' }}>
+            {operationalMode
+              ? 'Actif — les voisins ne peuvent pas modifier les réservations passées.'
+              : 'Inactif — les voisins peuvent modifier librement.'}
+          </div>
+          <button onClick={() => setOperationalMode(!operationalMode)}
+            style={{ flexShrink: 0, padding: '8px 16px', fontSize: 13, fontWeight: 700,
+                     border: 'none', borderRadius: 8,
+                     background: operationalMode ? '#166534' : '#E2E8F0',
+                     color: operationalMode ? 'white' : '#64748B' }}>
+            {operationalMode ? '✓ Actif' : 'Inactif'}
           </button>
         </div>
       </div>

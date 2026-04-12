@@ -230,6 +230,10 @@ export async function setSubtitle(text) {
   await setDoc(settingsDoc(), { subtitle: text }, { merge: true });
 }
 
+export async function setOperationalMode(enabled) {
+  await setDoc(settingsDoc(), { operationalMode: enabled }, { merge: true });
+}
+
 // ── Spots (private) ───────────────────────────────────────────────────────────
 export const spotsCol     = () => collection(db, 'spots');
 export const spotDoc      = id  => doc(db, 'spots', id);
