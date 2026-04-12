@@ -29,7 +29,8 @@ export default function VisitorTab({ member }) {
   const [qDayEnd,   setQDayEnd]   = useState(todayDay);
   const [qStart,    setQStart]    = useState(0);
   const [qEnd,      setQEnd]      = useState(47);
-  const [formError, setFormError] = useState(null);
+  const [formError,  setFormError]  = useState(null);
+  const [clearError, setClearError] = useState(null);
 
   // Agenda state
   const [agendaView,      setAgendaView]      = useState('Semaine');
@@ -248,10 +249,21 @@ export default function VisitorTab({ member }) {
       </div>
 
       {/* Clear scope button */}
+      {clearError && (
+        <div style={{ marginBottom: 8, background: '#FEF2F2', border: '1px solid #FECACA',
+                      borderRadius: 8, padding: '8px 10px', fontSize: 12, color: '#DC2626' }}>
+          {clearError}
+        </div>
+      )}
       {clearScope && (
         <button
           disabled={!clearScope.has}
-          onClick={() => { if (window.confirm(clearScope.label + ' ?')) clearScope.action(); }}
+          onClick={async () => {
+            if (!window.confirm(clearScope.label + ' ?')) return;
+            setClearError(null);
+            try { await clearScope.action(); }
+            catch (e) { setClearError('Erreur : ' + e.message); }
+          }}
           style={{ marginBottom: 10, width: '100%', background: 'white',
                    border: `1px solid ${clearScope.has ? '#FECACA' : '#E2E8F0'}`,
                    borderRadius: 10, padding: '9px 12px', fontSize: 13,
