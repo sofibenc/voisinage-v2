@@ -54,5 +54,15 @@ service cloud.firestore {
       allow update: if isAuth(); // owner adds slots + any member claims
       allow delete: if isAuth() && resource.data.ownerUid == request.auth.uid;
     }
+
+    match /reservations/{monthKey} {
+      allow read:  if isAuth();
+      allow write: if isAuth(); // transactions handle conflict checks server-side
+    }
+
+    match /usageStats/{uid} {
+      allow read:  if isAuth();
+      allow write: if isAuth(); // updated atomically inside reservation transactions
+    }
   }
 }
