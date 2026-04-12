@@ -142,29 +142,29 @@ export default function VisitorTab({ member }) {
       {stats.length > 0 && (
         <div style={{ background: 'white', borderRadius: 12, marginBottom: 12,
                       boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto',
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 56px 90px',
                         fontSize: 11, fontWeight: 700, color: '#94A3B8',
                         padding: '8px 12px', borderBottom: '1px solid #F1F5F9',
                         textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             <span>Voisin</span>
-            <span style={{ textAlign: 'right', paddingRight: 16 }}>Total</span>
+            <span style={{ textAlign: 'right' }}>Total</span>
             <span style={{ textAlign: 'right' }}>7 prochains jours</span>
           </div>
           {stats.map(s => (
-            <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto',
+            <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 56px 90px',
                                       padding: '8px 12px', fontSize: 13,
                                       borderBottom: '1px solid #F8FAFC',
                                       background: s.uid === member?.uid ? s.color.light : 'white' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%',
-                               background: s.color.bg, display: 'inline-block' }} />
+                               background: s.color.bg, display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ fontWeight: s.uid === member?.uid ? 700 : 400,
                                color: s.uid === member?.uid ? s.color.text : '#1E293B' }}>
                   {s.name || s.uid.slice(0, 6)}
                   {s.uid === member?.uid && ' (moi)'}
                 </span>
               </span>
-              <span style={{ textAlign: 'right', paddingRight: 16, color: '#475569', fontWeight: 600 }}>
+              <span style={{ textAlign: 'right', color: '#475569', fontWeight: 600 }}>
                 {s.totalHours % 1 === 0 ? s.totalHours : s.totalHours.toFixed(1)}h
               </span>
               <span style={{ textAlign: 'right', color: s.next7Hours > 0 ? s.color.text : '#CBD5E1',
