@@ -148,6 +148,70 @@ export async function claimSlot(mk, slotId, uid) {
   });
 }
 
+// ── Reservations (visitor spot — premier arrivé premier servi) ────────────────
+export const reservationDoc = mk  => doc(db, 'reservations', mk);
+export const usageStatDoc   = uid => doc(db, 'usageStats',   uid);
+
+const SLOTS_PER_DAY_R = 48;
+
+export async function claimReservationRange(mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref     = reservationDoc(mk);
+    const statRef = usageStatDoc(uid);
+    const [snap, statSnap] = await Promise.all([tx.get(ref), tx.get(statRef)]);
+    const assignments = snap.exists() ? { ...(snap.data().assignments ?? {}) } : {};
+
+    // Conflict check: slot already taken by someone else
+    for (let s = fromSlot; s <= toSlot; s++) {
+      const owner = assignments[String(s)];
+      if (owner && owner !== uid) throw new Error('OVERLAP');
+    }
+
+    // Consecutive-days check: merge existing days + new days, look for 3+ in a row
+    const userDays = new Set();
+    for (const [sid, owner] of Object.entries(assignments)) {
+      if (owner === uid) userDays.add(Math.floor(Number(sid) / SLOTS_PER_DAY_R) + 1);
+    }
+    for (let s = fromSlot; s <= toSlot; s++) {
+      userDays.add(Math.floor(s / SLOTS_PER_DAY_R) + 1);
+    }
+    const sorted = [...userDays].sort((a, b) => a - b);
+    let run = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === sorted[i - 1] + 1) { run++; if (run > 2) throw new Error('MAX_CONSECUTIVE_DAYS'); }
+      else run = 1;
+    }
+
+    // Apply
+    let newCount = 0;
+    for (let s = fromSlot; s <= toSlot; s++) {
+      if (!assignments[String(s)]) newCount++;
+      assignments[String(s)] = uid;
+    }
+    tx.set(ref, { assignments }, { merge: true });
+    const prev = statSnap.exists() ? (statSnap.data().totalSlots ?? 0) : 0;
+    tx.set(statRef, { totalSlots: prev + newCount }, { merge: true });
+  });
+}
+
+export async function releaseReservationRange(mk, fromSlot, toSlot, uid) {
+  await runTransaction(db, async tx => {
+    const ref     = reservationDoc(mk);
+    const statRef = usageStatDoc(uid);
+    const [snap, statSnap] = await Promise.all([tx.get(ref), tx.get(statRef)]);
+    if (!snap.exists()) return;
+    const assignments = { ...(snap.data().assignments ?? {}) };
+    let removed = 0;
+    for (let s = fromSlot; s <= toSlot; s++) {
+      if (assignments[String(s)] === uid) { delete assignments[String(s)]; removed++; }
+    }
+    if (removed === 0) return;
+    tx.set(ref, { assignments }, { merge: true });
+    const prev = statSnap.exists() ? (statSnap.data().totalSlots ?? 0) : 0;
+    tx.set(statRef, { totalSlots: Math.max(0, prev - removed) }, { merge: true });
+  });
+}
+
 // ── PrevUsage ─────────────────────────────────────────────────────────────────
 export const prevUsageDoc = mk => doc(db, 'prevUsage', mk);
 

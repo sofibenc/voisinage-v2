@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.js';
 import { loginWithGoogle, settingsDoc } from './firebase.js';
 import { onSnapshot } from 'firebase/firestore';
-import WishTab       from './tabs/WishTab.jsx';
-import PlanningTab   from './tabs/PlanningTab.jsx';
+import VisitorTab    from './tabs/VisitorTab.jsx';
 import SpotsTab      from './tabs/SpotsTab.jsx';
 import AdminTab      from './tabs/AdminTab.jsx';
 import ProfileModal  from './components/ProfileModal.jsx';
@@ -16,7 +15,6 @@ const MYSPOTS  = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 export default function App() {
   const { user, member, refreshMember } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
-  const [subTab,     setSubTab]     = useState('wish');    // 'wish' | 'planning'
   const [authError,  setAuthError]  = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [subtitle,   setSubtitle]   = useState('');
@@ -115,27 +113,10 @@ export default function App() {
         </button>
       </div>
 
-      {/* ── Sub-tabs (visitor only) ── */}
-      {section === 'visitor' && (
-        <div style={{ display: 'flex', background: 'white',
-                      borderBottom: '1px solid #E2E8F0' }}>
-          {[['wish', '✋ Souhaits'], ['planning', '📅 Planning']].map(([id, label]) => (
-            <button key={id} onClick={() => setSubTab(id)}
-              style={{ flex: 1, padding: '9px 4px', fontSize: 12, fontWeight: 600,
-                       border: 'none', background: 'none',
-                       borderBottom: subTab === id ? `2px solid ${VISITOR.bg}` : '2px solid transparent',
-                       color: subTab === id ? VISITOR.bg : '#94A3B8' }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* ── Content ── */}
       <div style={{ flex: 1, minHeight: 0, padding: 16, overflowY: 'auto' }}>
         <ErrorBoundary>
-          {section === 'visitor'  && subTab === 'wish'     && <WishTab member={member} />}
-          {section === 'visitor'  && subTab === 'planning' && <PlanningTab member={member} />}
+          {section === 'visitor'  && <VisitorTab member={member} />}
           {section === 'myspots'  && <SpotsTab member={member} />}
           {section === 'admin'    && member?.isAdmin && <AdminTab member={member} />}
         </ErrorBoundary>
