@@ -87,24 +87,6 @@ export default function WeekView({
         {weekDays.map(d => {
           const d_dow = (new Date(year, month, d).getDay() + 6) % 7;
 
-          // Pre-compute blocks for label overlay
-          const blocks = [];
-          let blockStart = null, blockState = null, blockColor = null, blockLabel = null;
-          for (let s = 0; s <= SLOTS_PER_DAY; s++) {
-            const sid = (d - 1) * SLOTS_PER_DAY + s;
-            const cur = s < SLOTS_PER_DAY ? getSlotState(sid) : { state: 'empty' };
-            const sameBlock = blockStart !== null && cur.state !== 'empty' && cur.color?.bg === blockColor?.bg;
-            if (!sameBlock) {
-              if (blockStart !== null && blockLabel) {
-                blocks.push({ startSlot: blockStart, endSlot: s - 1, label: blockLabel, state: blockState, color: blockColor });
-              }
-              blockStart = cur.state !== 'empty' ? s : null;
-              blockState = cur.state;
-              blockColor = cur.color;
-              blockLabel = cur.label;
-            }
-          }
-
           return (
             <div key={d} style={{ flex: 1, borderLeft: '1px solid #F1F5F9', position: 'relative' }}>
               {/* Day header */}
@@ -117,10 +99,11 @@ export default function WeekView({
               {/* Slots */}
               {Array.from({ length: SLOTS_PER_DAY }, (_, s) => {
                 const sid = (d - 1) * SLOTS_PER_DAY + s;
-                const { state, color } = getSlotState(sid);
+                const { state, color, label } = getSlotState(sid);
                 const bg = state === 'mine'      ? color?.bg    :
                            state === 'other'     ? color?.light  :
                            state === 'available' ? '#DCFCE7'     : 'transparent';
+                const textColor = state === 'mine' ? 'white' : color?.text;
                 return (
                   <div key={s}
                     onPointerDown={onSlotPointerDown ? e => onSlotPointerDown(sid, e) : undefined}
@@ -132,29 +115,19 @@ export default function WeekView({
                       borderBottom: s % 2 === 1 ? '1px solid #E2E8F0' : 'none',
                       cursor: (onSlotClick || onSlotPointerDown) ? 'pointer' : 'default',
                       userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden',
                     }}
-                  />
-                );
-              })}
-
-              {/* Block labels — centered within each block */}
-              {blocks.map(b => {
-                const top  = 28 + b.startSlot * 14;
-                const height = (b.endSlot - b.startSlot + 1) * 14;
-                const textColor = b.state === 'mine' ? 'white' : b.color?.text;
-                return (
-                  <div key={b.startSlot} style={{
-                    position: 'absolute', top, left: 0, right: 0, height,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    pointerEvents: 'none', overflow: 'hidden',
-                  }}>
-                    <span style={{
-                      fontSize: 8, fontWeight: 700, color: textColor,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      maxWidth: '100%', padding: '0 2px',
-                    }}>
-                      {b.label.split(' ')[0]}
-                    </span>
+                  >
+                    {label && state !== 'empty' && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 700, color: textColor,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        maxWidth: '100%', padding: '0 2px',
+                      }}>
+                        {label.split(' ')[0]}
+                      </span>
+                    )}
                   </div>
                 );
               })}
