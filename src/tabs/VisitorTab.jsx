@@ -74,7 +74,7 @@ export default function VisitorTab({ member }) {
       setShowForm(false);
     } catch (e) {
       if (e.message === 'OVERLAP') {
-        setFormError('Cette plage est déjà réservée par quelqu'un d'autre.');
+        setFormError("Cette plage est déjà réservée par quelqu'un d'autre.");
       } else if (e.message === 'MAX_CONSECUTIVE_DAYS') {
         setFormError('Vous ne pouvez pas réserver plus de 2 jours consécutifs.');
       } else {
