@@ -83,7 +83,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
 
     if (operationalMode && !member?.isAdmin) {
       const cur = currentDaySlotOffset();
-      if (cur >= 0 && fromSlot <= cur) {
+      if (cur >= 0 && fromSlot < cur) {
         setFormError('Mode opérationnel : impossible de modifier des créneaux passés.');
         return;
       }
@@ -285,7 +285,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
           onClick={async () => {
             if (operationalMode && !member?.isAdmin) {
               const cur = currentDaySlotOffset();
-              if (cur >= 0 && clearScope.from <= cur) {
+              if (cur >= 0 && clearScope.from < cur) {
                 setClearError('Mode opérationnel : impossible de modifier des créneaux passés.');
                 return;
               }
