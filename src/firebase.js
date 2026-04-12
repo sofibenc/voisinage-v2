@@ -6,7 +6,7 @@ import {
   getFirestore, doc, collection,
   setDoc, deleteDoc,
   runTransaction, arrayUnion, arrayRemove,
-  serverTimestamp,
+  serverTimestamp, deleteField,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -200,13 +200,17 @@ export async function releaseReservationRange(mk, fromSlot, toSlot, uid) {
     const statRef = usageStatDoc(uid);
     const [snap, statSnap] = await Promise.all([tx.get(ref), tx.get(statRef)]);
     if (!snap.exists()) return;
-    const assignments = { ...(snap.data().assignments ?? {}) };
+    const data = snap.data().assignments ?? {};
+    const updates = {};
     let removed = 0;
     for (let s = fromSlot; s <= toSlot; s++) {
-      if (assignments[String(s)] === uid) { delete assignments[String(s)]; removed++; }
+      if (data[String(s)] === uid) {
+        updates[`assignments.${s}`] = deleteField();
+        removed++;
+      }
     }
     if (removed === 0) return;
-    tx.set(ref, { assignments }, { merge: true });
+    tx.update(ref, updates);
     const prev = statSnap.exists() ? (statSnap.data().totalSlots ?? 0) : 0;
     tx.set(statRef, { totalSlots: Math.max(0, prev - removed) }, { merge: true });
   });
