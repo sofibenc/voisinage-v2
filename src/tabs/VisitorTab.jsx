@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useReservations } from '../hooks/useReservations.js';
 import { useMembers }      from '../hooks/useMembers.js';
 import { useUsageStats }   from '../hooks/useUsageStats.js';
@@ -19,6 +19,10 @@ export default function VisitorTab({ member }) {
   const { stats } = useUsageStats(members, year, month);
 
   const myColor = colorOf(member?.uid);
+  const nameOf  = useMemo(() => {
+    const map = Object.fromEntries(members.map(m => [m.uid, m.name || '?']));
+    return uid => map[uid] ?? '?';
+  }, [members]);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
 
@@ -90,8 +94,8 @@ export default function VisitorTab({ member }) {
     if (!owner) return { state: 'empty', color: null, label: '' };
     const color = colorOf(owner);
     const isMe  = owner === member?.uid;
-    return { state: isMe ? 'mine' : 'other', color, label: '' };
-  }, [assignments, colorOf, member?.uid]);
+    return { state: isMe ? 'mine' : 'other', color, label: nameOf(owner) };
+  }, [assignments, colorOf, nameOf, member?.uid]);
 
   // Clear scope (for current view)
   function getClearScope() {
