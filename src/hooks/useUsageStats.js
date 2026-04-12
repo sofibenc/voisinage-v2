@@ -30,28 +30,37 @@ export function useUsageStats(members, year, month) {
     });
   }, [mk]);
 
-  // Compute next-7-days slots per uid
   const now = new Date();
-  const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+  const todayDay   = isCurrentMonth ? now.getDate() : 1;
+  const nowSlot    = isCurrentMonth
+    ? (now.getDate() - 1) * SLOTS_PER_DAY + now.getHours() * 2 + (now.getMinutes() >= 30 ? 1 : 0)
+    : 0;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const endDay = Math.min(todayDay + 6, daysInMonth);
-  const fromSlot = (todayDay - 1) * SLOTS_PER_DAY;
-  const toSlot   = endDay * SLOTS_PER_DAY - 1;
+  const endDay  = Math.min(todayDay + 6, daysInMonth);
+  const next7To = endDay * SLOTS_PER_DAY - 1;
 
-  const next7ByUid = {};
+  const next7ByUid   = {}; // slots in next 7 days
+  const futureByUid  = {}; // slots strictly after now (to subtract from totalSlots)
+
   for (const [sid, uid] of Object.entries(assignments)) {
     const s = Number(sid);
-    if (s >= fromSlot && s <= toSlot) {
+    // next-7-days: from now slot to end of 7th day
+    if (s >= nowSlot && s <= next7To) {
       next7ByUid[uid] = (next7ByUid[uid] ?? 0) + 1;
+    }
+    // future slots in current month (to subtract from all-time total)
+    if (isCurrentMonth && s >= nowSlot) {
+      futureByUid[uid] = (futureByUid[uid] ?? 0) + 1;
     }
   }
 
   // Build stats array
   const stats = members.map(m => ({
-    uid:        m.uid,
-    name:       m.name,
-    color:      m.color,
-    totalHours: (totalByUid[m.uid] ?? 0) / 2,
+    uid:       m.uid,
+    name:      m.name,
+    color:     m.color,
+    pastHours: Math.max(0, (totalByUid[m.uid] ?? 0) - (futureByUid[m.uid] ?? 0)) / 2,
     next7Hours: (next7ByUid[m.uid] ?? 0) / 2,
   }));
 
