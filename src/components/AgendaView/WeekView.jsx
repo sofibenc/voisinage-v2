@@ -67,66 +67,100 @@ export default function WeekView({
                    color: canNext ? '#1E293B' : '#CBD5E1' }}>›</button>
       </div>
 
-      <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' }}>
-        {/* Header row */}
-        <div style={{ display: 'flex', position: 'sticky', top: 0, background: 'white',
-                      zIndex: 1, borderBottom: '1px solid #E2E8F0' }}>
-          <div style={{ width: 32, flexShrink: 0 }} />
-          {weekDays.map(d => {
-            const d_dow = (new Date(year, month, d).getDay() + 6) % 7;
-            return (
-              <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: 11,
-                                    fontWeight: 600, padding: '4px 0', color: '#64748B' }}>
-                {DAYS_FR[d_dow]}<br />{d}
-              </div>
-            );
-          })}
-        </div>
+      {/* Grid: gutter + one column per day */}
+      <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 240px)', display: 'flex' }}>
 
-        {/* Slot rows */}
-        {Array.from({ length: SLOTS_PER_DAY }, (_, s) => (
-          <div key={s} style={{ display: 'flex',
-                                borderBottom: s % 2 === 1 ? '1px solid #E2E8F0' : 'none' }}>
-            {/* Hour label gutter */}
-            <div style={{ width: 32, flexShrink: 0, fontSize: 11, color: '#475569',
-                          display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
+        {/* Hour gutter */}
+        <div style={{ width: 32, flexShrink: 0 }}>
+          {/* Header spacer */}
+          <div style={{ height: 28, borderBottom: '1px solid #E2E8F0' }} />
+          {Array.from({ length: SLOTS_PER_DAY }, (_, s) => (
+            <div key={s} style={{ height: 14, fontSize: 11, color: '#475569',
+                                  display: 'flex', alignItems: 'center', paddingLeft: 2,
+                                  borderBottom: s % 2 === 1 ? '1px solid #E2E8F0' : 'none' }}>
               {s % 2 === 0 ? `${String(s / 2).padStart(2, '0')}h` : ''}
             </div>
-            {weekDays.map(d => {
-              const sid = (d - 1) * SLOTS_PER_DAY + s;
-              const { state, color, label } = getSlotState(sid);
-              const bg = state === 'mine'      ? color?.bg    :
-                         state === 'other'     ? color?.light  :
-                         state === 'available' ? '#DCFCE7'     : 'transparent';
-              const textColor = state === 'mine' ? 'white' : color?.text;
-              return (
-                <div key={d}
-                  onPointerDown={onSlotPointerDown ? e => onSlotPointerDown(sid, e) : undefined}
-                  onPointerEnter={onSlotPointerEnter ? () => onSlotPointerEnter(sid) : undefined}
-                  onPointerUp={onSlotPointerUp}
-                  onClick={onSlotClick ? () => onSlotClick(sid) : undefined}
-                  style={{
-                    flex: 1, height: 14, background: bg,
-                    cursor: (onSlotClick || onSlotPointerDown) ? 'pointer' : 'default',
-                    userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
-                    borderLeft: '1px solid #F1F5F9',
-                    display: 'flex', alignItems: 'center',
-                  }}
-                >
-                  {label && state !== 'empty' && (
+          ))}
+        </div>
+
+        {/* Day columns */}
+        {weekDays.map(d => {
+          const d_dow = (new Date(year, month, d).getDay() + 6) % 7;
+
+          // Pre-compute blocks for label overlay
+          const blocks = [];
+          let blockStart = null, blockState = null, blockColor = null, blockLabel = null;
+          for (let s = 0; s <= SLOTS_PER_DAY; s++) {
+            const sid = (d - 1) * SLOTS_PER_DAY + s;
+            const cur = s < SLOTS_PER_DAY ? getSlotState(sid) : { state: 'empty' };
+            const sameBlock = blockStart !== null && cur.state !== 'empty' && cur.color?.bg === blockColor?.bg;
+            if (!sameBlock) {
+              if (blockStart !== null && blockLabel) {
+                blocks.push({ startSlot: blockStart, endSlot: s - 1, label: blockLabel, state: blockState, color: blockColor });
+              }
+              blockStart = cur.state !== 'empty' ? s : null;
+              blockState = cur.state;
+              blockColor = cur.color;
+              blockLabel = cur.label;
+            }
+          }
+
+          return (
+            <div key={d} style={{ flex: 1, borderLeft: '1px solid #F1F5F9', position: 'relative' }}>
+              {/* Day header */}
+              <div style={{ height: 28, textAlign: 'center', fontSize: 11, fontWeight: 600,
+                            padding: '4px 0', color: '#64748B', borderBottom: '1px solid #E2E8F0',
+                            position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
+                {DAYS_FR[d_dow]}<br />{d}
+              </div>
+
+              {/* Slots */}
+              {Array.from({ length: SLOTS_PER_DAY }, (_, s) => {
+                const sid = (d - 1) * SLOTS_PER_DAY + s;
+                const { state, color } = getSlotState(sid);
+                const bg = state === 'mine'      ? color?.bg    :
+                           state === 'other'     ? color?.light  :
+                           state === 'available' ? '#DCFCE7'     : 'transparent';
+                return (
+                  <div key={s}
+                    onPointerDown={onSlotPointerDown ? e => onSlotPointerDown(sid, e) : undefined}
+                    onPointerEnter={onSlotPointerEnter ? () => onSlotPointerEnter(sid) : undefined}
+                    onPointerUp={onSlotPointerUp}
+                    onClick={onSlotClick ? () => onSlotClick(sid) : undefined}
+                    style={{
+                      height: 14, background: bg,
+                      borderBottom: s % 2 === 1 ? '1px solid #E2E8F0' : 'none',
+                      cursor: (onSlotClick || onSlotPointerDown) ? 'pointer' : 'default',
+                      userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
+                    }}
+                  />
+                );
+              })}
+
+              {/* Block labels — centered within each block */}
+              {blocks.map(b => {
+                const top  = 28 + b.startSlot * 14;
+                const height = (b.endSlot - b.startSlot + 1) * 14;
+                const textColor = b.state === 'mine' ? 'white' : b.color?.text;
+                return (
+                  <div key={b.startSlot} style={{
+                    position: 'absolute', top, left: 0, right: 0, height,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none', overflow: 'hidden',
+                  }}>
                     <span style={{
                       fontSize: 8, fontWeight: 700, color: textColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      lineHeight: 1, paddingLeft: 2,
+                      maxWidth: '100%', padding: '0 2px',
                     }}>
-                      {label.split(' ')[0]}
+                      {b.label.split(' ')[0]}
                     </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
