@@ -98,12 +98,6 @@ export default function WeekView({
               const bg = state === 'mine'      ? color?.bg    :
                          state === 'other'     ? color?.light  :
                          state === 'available' ? '#DCFCE7'     : 'transparent';
-              // Show label only at start of a block (prev slot empty or different owner)
-              const prevSid = (d - 1) * SLOTS_PER_DAY + s - 1;
-              const prevState = s > 0 ? getSlotState(prevSid) : null;
-              const isBlockStart = state !== 'empty' && (
-                s === 0 || !prevState || prevState.state === 'empty' || prevState.color?.bg !== color?.bg
-              );
               const textColor = state === 'mine' ? 'white' : color?.text;
               return (
                 <div key={d}
@@ -112,18 +106,18 @@ export default function WeekView({
                   onPointerUp={onSlotPointerUp}
                   onClick={onSlotClick ? () => onSlotClick(sid) : undefined}
                   style={{
-                    flex: 1, height: 14, background: bg, position: 'relative',
+                    flex: 1, height: 14, background: bg,
                     cursor: (onSlotClick || onSlotPointerDown) ? 'pointer' : 'default',
                     userSelect: 'none', touchAction: interactive ? 'none' : 'auto',
-                    borderLeft: '1px solid #F1F5F9', overflow: 'visible',
+                    borderLeft: '1px solid #F1F5F9',
+                    display: 'flex', alignItems: 'center',
                   }}
                 >
-                  {isBlockStart && label && (
+                  {label && state !== 'empty' && (
                     <span style={{
-                      position: 'absolute', top: 1, left: 2, right: 2,
                       fontSize: 8, fontWeight: 700, color: textColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      lineHeight: 1, pointerEvents: 'none', zIndex: 1,
+                      lineHeight: 1, paddingLeft: 2,
                     }}>
                       {label.split(' ')[0]}
                     </span>
