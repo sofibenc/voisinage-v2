@@ -132,6 +132,14 @@ export default function SpotsTab({ member }) {
   function prevMonth() { if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
 
+  // Returns the current absolute slot index within the displayed month, or -1 if different month
+  function currentSlotOffset() {
+    const n = new Date();
+    if (n.getFullYear() !== year || n.getMonth() !== month) return -1;
+    return (n.getDate() - 1) * SLOTS_PER_DAY + n.getHours() * 2 + (n.getMinutes() >= 30 ? 1 : 0);
+  }
+  function isPast(sid) { const cur = currentSlotOffset(); return cur >= 0 && sid < cur; }
+
   // ── My spot availability getSlotState ────────────────────────────────────
   const myAvail = mySpot ? (availability[mySpot.id] ?? { slots: [], taken: {} }) : { slots: [], taken: {} };
   const myColor = colorOf(member?.uid);
@@ -167,6 +175,7 @@ export default function SpotsTab({ member }) {
 
   // ── Handle range apply (my spot) ─────────────────────────────────────────
   async function handleRangeApply(mode, fromSlot, toSlot, qDay) {
+    if (isPast(fromSlot)) return; // silently ignore — UI shouldn't allow it
     const spotId = mySpot?.id ?? await ensureMySpot(`Place de ${member?.name ?? 'moi'}`);
     if (mode === 'add') await mergeMySlots(spotId, buildSlotList(fromSlot, toSlot));
     else await clearMyRange(spotId, fromSlot, toSlot);
@@ -196,6 +205,10 @@ export default function SpotsTab({ member }) {
 
   async function handleNeighborRangeApply(mode, fromSlot, toSlot, qDay) {
     setNeighborError(null);
+    if (isPast(fromSlot)) {
+      setNeighborError('Impossible de modifier des créneaux passés.');
+      return;
+    }
     try {
       if (mode === 'remove') {
         await releaseNeighborRange(neighborSpotId, fromSlot, toSlot);
@@ -264,6 +277,7 @@ export default function SpotsTab({ member }) {
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
           onWeekStartChange={setAgendaWeekStart}
           onSlotClick={sid => {
+            if (isPast(sid)) return;
             const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
             const base = (day - 1) * SLOTS_PER_DAY;
             const s    = sid % SLOTS_PER_DAY;
@@ -446,6 +460,7 @@ export default function SpotsTab({ member }) {
             controlledDay={agendaDay}   onDayChange={setAgendaDay}
             onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
+              if (isPast(sid)) return;
               const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
               const base = (day - 1) * SLOTS_PER_DAY;
               const s    = sid % SLOTS_PER_DAY;
