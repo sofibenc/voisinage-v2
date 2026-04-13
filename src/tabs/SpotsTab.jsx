@@ -331,35 +331,29 @@ export default function SpotsTab({ member }) {
     <div>
       <MonthNav />
 
-      {/* Proposer ma place */}
-      <button onClick={() => setView('myspot')}
-        style={{ width: '100%', background: AMBER.bg, color: 'white', border: 'none',
-                 borderRadius: 12, padding: '13px 16px', fontSize: 14, fontWeight: 700,
-                 marginBottom: 12, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 18 }}>🔑</span>
-        <div>
-          <div>Proposer ma place</div>
-          {mySlotCount > 0 && (
-            <div style={{ fontSize: 11, fontWeight: 400, opacity: 0.85, marginTop: 1 }}>
-              {mySlotCount / 2}h disponibles · {myTakenCount} réservation{myTakenCount > 1 ? 's' : ''}
-            </div>
-          )}
-        </div>
-      </button>
-
-      {/* Mes offres */}
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={() => setView('myspot')}
-          style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
-                   borderRadius: 12, padding: '12px 16px', fontSize: 14,
-                   display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18 }}>📋</span>
-            <span style={{ fontWeight: 600 }}>Mes offres</span>
-          </div>
-          <span style={{ color: '#94A3B8' }}>›</span>
-        </button>
+      {/* Mes propositions */}
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8',
+                    letterSpacing: '0.05em', marginBottom: 8 }}>
+        MES PROPOSITIONS
       </div>
+      <button onClick={() => setView('myspot')}
+        style={{ width: '100%', background: 'white', border: `1px solid ${AMBER.bg}`,
+                 borderRadius: 12, padding: '12px 16px', fontSize: 14,
+                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                 marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>🔑</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontWeight: 600, color: AMBER.text }}>Ma place</div>
+            <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>
+              {mySlotCount > 0
+                ? `${mySlotCount / 2}h disponibles · ${myTakenCount} réservation${myTakenCount > 1 ? 's' : ''}`
+                : 'Aucune disponibilité ce mois'}
+            </div>
+          </div>
+        </div>
+        <span style={{ color: '#94A3B8' }}>›</span>
+      </button>
 
       {/* Places disponibles */}
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8',
