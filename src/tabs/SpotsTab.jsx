@@ -132,13 +132,17 @@ export default function SpotsTab({ member }) {
   function prevMonth() { if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
 
-  // Returns the current absolute slot index within the displayed month, or -1 if different month
-  function currentSlotOffset() {
+  function isPast(sid) {
     const n = new Date();
-    if (n.getFullYear() !== year || n.getMonth() !== month) return -1;
-    return (n.getDate() - 1) * SLOTS_PER_DAY + n.getHours() * 2 + (n.getMinutes() >= 30 ? 1 : 0);
+    const ny = n.getFullYear(), nm = n.getMonth();
+    // Entire past month → all slots are past
+    if (year < ny || (year === ny && month < nm)) return true;
+    // Future month → nothing is past
+    if (year > ny || (year === ny && month > nm)) return false;
+    // Current month: compare absolute slot index
+    const cur = (n.getDate() - 1) * SLOTS_PER_DAY + n.getHours() * 2 + (n.getMinutes() >= 30 ? 1 : 0);
+    return sid < cur;
   }
-  function isPast(sid) { const cur = currentSlotOffset(); return cur >= 0 && sid < cur; }
 
   // ── My spot availability getSlotState ────────────────────────────────────
   const myAvail = mySpot ? (availability[mySpot.id] ?? { slots: [], taken: {} }) : { slots: [], taken: {} };
