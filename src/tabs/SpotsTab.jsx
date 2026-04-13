@@ -337,6 +337,33 @@ export default function SpotsTab({ member }) {
           />
         </div>
 
+        {/* Month legend — visible only in Mois view */}
+        {agendaView === 'Mois' && (() => {
+          const items = [];
+          const hasAvailable = (neighborAvail?.slots ?? []).some(s => !neighborAvail?.taken?.[String(s)]);
+          if (hasAvailable) items.push({ color: ownerColor, name: owner?.name ?? '?', isAvailable: true });
+          const takerUids = [...new Set(Object.values(neighborAvail?.taken ?? {}))];
+          for (const uid of takerUids) {
+            items.push({ color: colorOf(uid), name: members.find(m => m.uid === uid)?.name ?? '?', isAvailable: false });
+          }
+          if (items.length === 0) return null;
+          return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px',
+                          padding: '10px 4px 2px' }}>
+              {items.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475569' }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                    background:   item.isAvailable ? 'transparent' : item.color?.bg,
+                    border:       item.isAvailable ? `2px solid ${item.color?.bg}` : 'none',
+                  }} />
+                  {item.name}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Click-to-book modal: range form pre-filled with the day's available range */}
         {clickedSlotRange !== null && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
