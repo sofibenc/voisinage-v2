@@ -47,11 +47,13 @@ export function useUsageStats(members, year, month) {
   const endDay  = Math.min(todayDay + 6, daysInMonth);
   const next7To = endDay * SLOTS_PER_DAY - 1;
 
-  const next7ByUid   = {}; // slots in next 7 days
-  const futureByUid  = {}; // slots strictly after now (to subtract from totalSlots)
+  const next7ByUid      = {}; // slots in next 7 days
+  const futureByUid     = {}; // slots strictly after now (to subtract from all-time total)
+  const monthTotalByUid = {}; // all slots in current month
 
   for (const [sid, uid] of Object.entries(assignments)) {
     const s = Number(sid);
+    monthTotalByUid[uid] = (monthTotalByUid[uid] ?? 0) + 1;
     // next-7-days: from now slot to end of 7th day
     if (s >= nowSlot && s <= next7To) {
       next7ByUid[uid] = (next7ByUid[uid] ?? 0) + 1;
@@ -64,11 +66,12 @@ export function useUsageStats(members, year, month) {
 
   // Build stats array
   const stats = members.map(m => ({
-    uid:       m.uid,
-    name:      m.name,
-    color:     m.color,
-    pastHours: Math.max(0, (totalByUid[m.uid] ?? 0) - (futureByUid[m.uid] ?? 0)) / 2,
-    next7Hours: (next7ByUid[m.uid] ?? 0) / 2,
+    uid:            m.uid,
+    name:           m.name,
+    color:          m.color,
+    pastHours:      Math.max(0, (totalByUid[m.uid] ?? 0) - (futureByUid[m.uid] ?? 0)) / 2,
+    monthPastHours: Math.max(0, (monthTotalByUid[m.uid] ?? 0) - (futureByUid[m.uid] ?? 0)) / 2,
+    next7Hours:     (next7ByUid[m.uid] ?? 0) / 2,
   }));
 
   return { stats };

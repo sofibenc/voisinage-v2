@@ -3,7 +3,7 @@ import { useReservations } from '../hooks/useReservations.js';
 import { useMembers }      from '../hooks/useMembers.js';
 import { useUsageStats }   from '../hooks/useUsageStats.js';
 import AgendaView          from '../components/AgendaView/AgendaView.jsx';
-import { MONTHS, monthKey } from '../constants.js';
+import { MONTHS } from '../constants.js';
 import { SLOTS_PER_DAY }   from '../utils/slots.js';
 
 function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
@@ -153,16 +153,17 @@ export default function VisitorTab({ member, operationalMode = false }) {
           </button>
           {showStats && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
-                            fontSize: 11, fontWeight: 700, color: '#94A3B8',
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 80px 70px',
+                            fontSize: 10, fontWeight: 700, color: '#94A3B8',
                             padding: '6px 12px', borderTop: '1px solid #F1F5F9',
                             textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 <span>Voisin</span>
-                <span style={{ textAlign: 'right' }}>Total consommé</span>
-                <span style={{ textAlign: 'right' }}>7 prochains jours</span>
+                <span style={{ textAlign: 'right' }}>Total</span>
+                <span style={{ textAlign: 'right' }}>Ce mois-ci</span>
+                <span style={{ textAlign: 'right' }}>7 j.</span>
               </div>
               {stats.map(s => (
-                <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
+                <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 70px 80px 70px',
                                           padding: '8px 12px', fontSize: 13,
                                           borderTop: '1px solid #F8FAFC',
                                           background: s.uid === member?.uid ? s.color.light : 'white' }}>
@@ -177,6 +178,10 @@ export default function VisitorTab({ member, operationalMode = false }) {
                   </span>
                   <span style={{ textAlign: 'right', color: '#475569', fontWeight: 600 }}>
                     {s.pastHours % 1 === 0 ? s.pastHours : s.pastHours.toFixed(1)}h
+                  </span>
+                  <span style={{ textAlign: 'right', color: s.monthPastHours > 0 ? '#475569' : '#CBD5E1',
+                                 fontWeight: s.monthPastHours > 0 ? 600 : 400 }}>
+                    {s.monthPastHours > 0 ? `${s.monthPastHours % 1 === 0 ? s.monthPastHours : s.monthPastHours.toFixed(1)}h` : '—'}
                   </span>
                   <span style={{ textAlign: 'right', color: s.next7Hours > 0 ? s.color.text : '#CBD5E1',
                                  fontWeight: s.next7Hours > 0 ? 700 : 400 }}>
