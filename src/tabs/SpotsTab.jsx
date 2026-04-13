@@ -289,6 +289,8 @@ export default function SpotsTab({ member }) {
                       boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
           <AgendaView year={year} month={month}
             getSlotState={getNeighborSlotState}
+            controlledView={agendaView} onViewChange={setAgendaView}
+            controlledDay={agendaDay}   onDayChange={setAgendaDay}
             onSlotClick={sid => {
               if (neighborAvail?.slots?.includes(sid) && !neighborAvail?.taken?.[String(sid)]) {
                 setConfirmSlot(sid);
