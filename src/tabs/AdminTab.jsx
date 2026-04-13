@@ -90,8 +90,13 @@ export default function AdminTab({ member }) {
             <div style={{ width: 10, height: 10, borderRadius: '50%',
                           background: s.color.bg, flexShrink: 0 }} />
             <span style={{ flex: 1, fontSize: 13 }}>{s.name || s.uid.slice(0, 6)}</span>
+            <span style={{ fontSize: 12, color: '#94A3B8' }}>ce mois</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>
-              {s.pastHours % 1 === 0 ? s.pastHours : s.pastHours.toFixed(1)}h consommées
+              {s.monthPastHours > 0 ? `${s.monthPastHours % 1 === 0 ? s.monthPastHours : s.monthPastHours.toFixed(1)}h` : '—'}
+            </span>
+            <span style={{ fontSize: 12, color: '#94A3B8' }}>mois dernier</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>
+              {s.lastMonthHours > 0 ? `${s.lastMonthHours % 1 === 0 ? s.lastMonthHours : s.lastMonthHours.toFixed(1)}h` : '—'}
             </span>
             {s.next7Hours > 0 && (
               <span style={{ fontSize: 12, color: s.color.text, fontWeight: 600 }}>
