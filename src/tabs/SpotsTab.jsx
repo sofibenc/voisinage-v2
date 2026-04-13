@@ -14,12 +14,14 @@ const AMBER = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 function RangeForm({ daysInMonth, month, accentBg, onApply,
                      modes = ['add', 'remove'],
                      modeLabels = ['+ Ajouter', '− Supprimer'],
-                     defaultDay = 1, defaultDayEnd = 1 }) {
+                     defaultDay = 1, defaultDayEnd = 1,
+                     defaultStart = 0, defaultEnd = 47,
+                     hideDayRange = false }) {
   const [rangeMode, setRangeMode] = useState(modes[0]);
   const [qDay,    setQDay]    = useState(defaultDay);
   const [qDayEnd, setQDayEnd] = useState(defaultDayEnd);
-  const [qStart,  setQStart]  = useState(0);
-  const [qEnd,    setQEnd]    = useState(47);
+  const [qStart,  setQStart]  = useState(defaultStart);
+  const [qEnd,    setQEnd]    = useState(defaultEnd);
 
   function apply() {
     if (rangeMode === 'remove' && !window.confirm('Supprimer les disponibilités de cette plage ?')) return;
@@ -31,20 +33,22 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {/* Mode toggle */}
-      <div style={{ display: 'flex', gap: 4 }}>
-        {modes.map((mode, i) => (
-          <button key={mode} onClick={() => setRangeMode(mode)}
-            style={{ flex: 1, padding: '6px 0', fontSize: 12, fontWeight: 600,
-                     border: 'none', borderRadius: 8,
-                     background: rangeMode === mode ? (mode === modes[0] ? accentBg : '#EF4444') : '#F1F5F9',
-                     color: rangeMode === mode ? 'white' : '#64748B' }}>
-            {modeLabels[i]}
-          </button>
-        ))}
-      </div>
+      {/* Mode toggle — hidden when only one mode */}
+      {modes.length > 1 && (
+        <div style={{ display: 'flex', gap: 4 }}>
+          {modes.map((mode, i) => (
+            <button key={mode} onClick={() => setRangeMode(mode)}
+              style={{ flex: 1, padding: '6px 0', fontSize: 12, fontWeight: 600,
+                       border: 'none', borderRadius: 8,
+                       background: rangeMode === mode ? (mode === modes[0] ? accentBg : '#EF4444') : '#F1F5F9',
+                       color: rangeMode === mode ? 'white' : '#64748B' }}>
+              {modeLabels[i]}
+            </button>
+          ))}
+        </div>
+      )}
       {/* Day range */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      {!hideDayRange && <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>Du</label>
         <select value={qDay} onChange={e => { const d = Number(e.target.value); setQDay(d); if (qDayEnd < d) setQDayEnd(d); }}
           style={{ flex: 1, padding: '7px 8px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13 }}>
@@ -59,7 +63,7 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
             <option key={d} value={d}>{d} {MONTHS[month]}</option>
           ))}
         </select>
-      </div>
+      </div>}
       {/* Time range */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <label style={{ fontSize: 12, color: '#64748B', width: 36 }}>De</label>
@@ -91,7 +95,7 @@ export default function SpotsTab({ member }) {
   const mk = monthKey(year, month);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const { mySpot, otherSpots, availability, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
+  const { mySpot, otherSpots, availability, ensureMySpot, mergeMySlots, clearMyRange, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
   const { colorOf, members } = useMembers();
 
   // view: 'main' | 'myspot' | 'neighbor'
@@ -101,7 +105,7 @@ export default function SpotsTab({ member }) {
   const [agendaView,       setAgendaView]        = useState('Mois');
   const [agendaDay,        setAgendaDay]         = useState(now.getDate());
   const [agendaWeekStart,  setAgendaWeekStart]   = useState(null);
-  const [confirmSlot,      setConfirmSlot]       = useState(null);
+  const [clickedSlotRange, setClickedSlotRange]  = useState(null); // { day, startSlot, endSlot }
   const [showNeighborForm, setShowNeighborForm]  = useState(false);
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
@@ -319,32 +323,62 @@ export default function SpotsTab({ member }) {
             onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
               if (neighborAvail?.slots?.includes(sid) && !neighborAvail?.taken?.[String(sid)]) {
-                setConfirmSlot(sid);
+                const day = Math.floor(sid / SLOTS_PER_DAY) + 1;
+                const base = (day - 1) * SLOTS_PER_DAY;
+                const availableInDay = (neighborAvail.slots ?? [])
+                  .filter(s => s >= base && s < base + SLOTS_PER_DAY && !neighborAvail.taken?.[String(s)])
+                  .map(s => s % SLOTS_PER_DAY);
+                const startSlot = availableInDay.length > 0 ? Math.min(...availableInDay) : sid % SLOTS_PER_DAY;
+                const endSlot   = availableInDay.length > 0 ? Math.max(...availableInDay) : sid % SLOTS_PER_DAY;
+                setClickedSlotRange({ day, startSlot, endSlot });
               }
             }}
           />
         </div>
 
-        {/* Confirm claim */}
-        {confirmSlot !== null && (
+        {/* Click-to-book modal: range form pre-filled with the day's available range */}
+        {clickedSlotRange !== null && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
                         zIndex: 50, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', padding: 20 }}>
-            <div style={{ background: 'white', borderRadius: 16, padding: 24, maxWidth: 320, width: '100%' }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Réserver ce créneau ?</div>
-              <div style={{ fontSize: 13, color: '#64748B', marginBottom: 16 }}>
-                Place de {owner?.name} · {fmtStart(confirmSlot % SLOTS_PER_DAY)}–{fmtEnd(confirmSlot % SLOTS_PER_DAY)}
+                        justifyContent: 'center', padding: 20 }}
+            onClick={() => setClickedSlotRange(null)}>
+            <div style={{ background: 'white', borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}
+              onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>Réserver — Place de {owner?.name ?? '?'}</div>
+                <button onClick={() => setClickedSlotRange(null)}
+                  style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setConfirmSlot(null)}
-                  style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #E2E8F0',
-                           background: 'white', fontSize: 14 }}>Annuler</button>
-                <button onClick={() => { claimSlot(neighborSpotId, confirmSlot); setConfirmSlot(null); }}
-                  style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none',
-                           background: '#1E293B', color: 'white', fontSize: 14, fontWeight: 600 }}>
-                  Confirmer
-                </button>
-              </div>
+              <RangeForm
+                key={`clicked-${clickedSlotRange.day}-${clickedSlotRange.startSlot}`}
+                daysInMonth={daysInMonth} month={month}
+                accentBg="#16A34A"
+                modes={['add']}
+                modeLabels={['+ Réserver']}
+                defaultDay={clickedSlotRange.day}
+                defaultDayEnd={clickedSlotRange.day}
+                defaultStart={clickedSlotRange.startSlot}
+                defaultEnd={clickedSlotRange.endSlot}
+                hideDayRange
+                onApply={async (_mode, fromSlot, toSlot, qDay) => {
+                  setNeighborError(null);
+                  try {
+                    await claimNeighborRange(neighborSpotId, fromSlot, toSlot);
+                    setAgendaDay(qDay);
+                    setClickedSlotRange(null);
+                  } catch (e) {
+                    if (e.message === 'OVERLAP') setNeighborError('Chevauchement : un créneau est déjà réservé par quelqu\'un d\'autre.');
+                    else if (e.message === 'UNAVAILABLE') setNeighborError('Créneau non disponible : le propriétaire n\'a pas ouvert cette plage.');
+                    else setNeighborError('Erreur inattendue, réessaie.');
+                  }
+                }}
+              />
+              {neighborError && (
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+                              padding: '8px 10px', fontSize: 12, color: '#DC2626', marginTop: 10 }}>
+                  ⚠️ {neighborError}
+                </div>
+              )}
             </div>
           </div>
         )}

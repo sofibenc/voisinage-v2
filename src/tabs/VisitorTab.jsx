@@ -40,6 +40,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
   // Agenda state
   const [agendaView,      setAgendaView]      = useState('Mois');
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
+  const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
@@ -186,7 +187,16 @@ export default function VisitorTab({ member, operationalMode = false }) {
 
       {/* Add/Remove range form */}
       <div style={{ marginBottom: 10 }}>
-        <button onClick={() => setShowForm(v => { if (!v) { setQDay(agendaDay); setQDayEnd(agendaDay); setFormError(null); } return !v; })}
+        <button onClick={() => setShowForm(v => {
+          if (!v) {
+            const weekStart = agendaWeekStart ?? agendaDay;
+            const weekEnd   = Math.min(daysInMonth, weekStart + 6);
+            const d  = agendaView === 'Semaine' ? weekStart : agendaDay;
+            const d2 = agendaView === 'Semaine' ? weekEnd   : agendaDay;
+            setQDay(d); setQDayEnd(d2); setFormError(null);
+          }
+          return !v;
+        })}
           style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                    borderRadius: showForm ? '10px 10px 0 0' : 10,
                    padding: '9px 12px', fontSize: 13, color: '#475569',
@@ -269,6 +279,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
           getSlotState={getSlotState}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
+          onWeekStartChange={setAgendaWeekStart}
         />
       </div>
     </div>
