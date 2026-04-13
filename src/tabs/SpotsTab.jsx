@@ -16,7 +16,8 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
                      modeLabels = ['+ Ajouter', '− Supprimer'],
                      defaultDay = 1, defaultDayEnd = 1,
                      defaultStart = 0, defaultEnd = 47,
-                     hideDayRange = false }) {
+                     hideDayRange = false,
+                     confirmMessage = 'Supprimer les disponibilités de cette plage ?' }) {
   const [rangeMode, setRangeMode] = useState(modes[0]);
   const [qDay,    setQDay]    = useState(defaultDay);
   const [qDayEnd, setQDayEnd] = useState(defaultDayEnd);
@@ -24,7 +25,7 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
   const [qEnd,    setQEnd]    = useState(defaultEnd);
 
   function apply() {
-    if (rangeMode === 'remove' && !window.confirm('Supprimer les disponibilités de cette plage ?')) return;
+    if (rangeMode === 'remove' && !window.confirm(confirmMessage)) return;
     const endDay   = Math.max(qDay, qDayEnd);
     const fromSlot = (qDay - 1) * SLOTS_PER_DAY + qStart;
     const toSlot   = (endDay - 1) * SLOTS_PER_DAY + qEnd;
@@ -315,6 +316,7 @@ export default function SpotsTab({ member }) {
                 onApply={handleNeighborRangeApply}
                 modeLabels={['+ Réserver', '− Annuler']}
                 modes={['add', 'remove']}
+                confirmMessage="Annuler ma réservation sur cette plage ?"
                 defaultDay={agendaView === 'Jour' ? agendaDay
                   : agendaView === 'Semaine' ? (agendaWeekStart ?? agendaDay)
                   : 1}
@@ -458,6 +460,7 @@ export default function SpotsTab({ member }) {
                 accentBg="#EF4444"
                 modes={['remove']}
                 modeLabels={['− Annuler la réservation']}
+                confirmMessage="Annuler ma réservation sur cette plage ?"
                 defaultDay={cancelSlotRange.day}
                 defaultDayEnd={cancelSlotRange.day}
                 defaultStart={cancelSlotRange.startSlot}
