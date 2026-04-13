@@ -106,6 +106,7 @@ export default function SpotsTab({ member }) {
   const [agendaDay,        setAgendaDay]         = useState(now.getDate());
   const [agendaWeekStart,  setAgendaWeekStart]   = useState(null);
   const [clickedSlotRange, setClickedSlotRange]  = useState(null); // { day, startSlot, endSlot }
+  const [cancelSlotRange,  setCancelSlotRange]   = useState(null); // { day, startSlot, endSlot }
   const [showNeighborForm, setShowNeighborForm]  = useState(false);
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
@@ -339,10 +340,21 @@ export default function SpotsTab({ member }) {
             controlledDay={agendaDay}   onDayChange={setAgendaDay}
             onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
-              if (neighborAvail?.slots?.includes(sid) && !neighborAvail?.taken?.[String(sid)]) {
-                const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
-                const base = (day - 1) * SLOTS_PER_DAY;
-                const s    = sid % SLOTS_PER_DAY;
+              const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
+              const base = (day - 1) * SLOTS_PER_DAY;
+              const s    = sid % SLOTS_PER_DAY;
+              const takenBy = neighborAvail?.taken?.[String(sid)];
+              if (takenBy === member?.uid) {
+                // My reservation → cancel
+                const isMine = i => neighborAvail?.taken?.[String(base + i)] === member?.uid;
+                let startSlot = s;
+                while (startSlot > 0 && isMine(startSlot - 1)) startSlot--;
+                let endSlot = s;
+                while (endSlot < SLOTS_PER_DAY - 1 && isMine(endSlot + 1)) endSlot++;
+                setNeighborError(null);
+                setCancelSlotRange({ day, startSlot, endSlot });
+              } else if (neighborAvail?.slots?.includes(sid) && !takenBy) {
+                // Free slot → book
                 const isFree = i => (neighborAvail.slots ?? []).includes(base + i) && !neighborAvail.taken?.[String(base + i)];
                 let startSlot = s;
                 while (startSlot > 0 && isFree(startSlot - 1)) startSlot--;
@@ -415,6 +427,50 @@ export default function SpotsTab({ member }) {
                     if (e.message === 'OVERLAP') setNeighborError('Chevauchement : un créneau est déjà réservé par quelqu\'un d\'autre.');
                     else if (e.message === 'UNAVAILABLE') setNeighborError('Créneau non disponible : le propriétaire n\'a pas ouvert cette plage.');
                     else setNeighborError('Erreur inattendue, réessaie.');
+                  }
+                }}
+              />
+              {neighborError && (
+                <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+                              padding: '8px 10px', fontSize: 12, color: '#DC2626', marginTop: 10 }}>
+                  ⚠️ {neighborError}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Click-to-cancel modal */}
+        {cancelSlotRange !== null && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                        zIndex: 50, display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', padding: 20 }}
+            onClick={() => setCancelSlotRange(null)}>
+            <div style={{ background: 'white', borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}
+              onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>Annuler — Place de {owner?.name ?? '?'}</div>
+                <button onClick={() => setCancelSlotRange(null)}
+                  style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
+              </div>
+              <RangeForm
+                key={`cancel-${cancelSlotRange.day}-${cancelSlotRange.startSlot}`}
+                daysInMonth={daysInMonth} month={month}
+                accentBg="#EF4444"
+                modes={['remove']}
+                modeLabels={['− Annuler la réservation']}
+                defaultDay={cancelSlotRange.day}
+                defaultDayEnd={cancelSlotRange.day}
+                defaultStart={cancelSlotRange.startSlot}
+                defaultEnd={cancelSlotRange.endSlot}
+                hideDayRange
+                onApply={async (_mode, fromSlot, toSlot, qDay) => {
+                  setNeighborError(null);
+                  try {
+                    await releaseNeighborRange(neighborSpotId, fromSlot, toSlot);
+                    setAgendaDay(qDay);
+                    setCancelSlotRange(null);
+                  } catch (e) {
+                    setNeighborError('Erreur inattendue, réessaie.');
                   }
                 }}
               />
