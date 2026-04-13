@@ -112,13 +112,15 @@ export default function SpotsTab({ member }) {
   const myColor = colorOf(member?.uid);
 
   const getMySlotState = useCallback(sid => {
-    if (myAvail.taken?.[String(sid)]) {
-      const takerColor = colorOf(myAvail.taken[String(sid)]);
-      return { state: 'other', color: takerColor, label: '' };
+    const takerUid = myAvail.taken?.[String(sid)];
+    if (takerUid) {
+      const takerColor = colorOf(takerUid);
+      const takerName  = members.find(m => m.uid === takerUid)?.name ?? '?';
+      return { state: 'other', color: takerColor, label: takerName };
     }
     if (myAvail.slots?.includes(sid)) return { state: 'available', color: null, label: '✦' };
     return { state: 'empty', color: null, label: '' };
-  }, [myAvail, colorOf]);
+  }, [myAvail, colorOf, members]);
 
   // ── Neighbor spot getSlotState ───────────────────────────────────────────
   const neighborAvail = neighborSpotId ? (availability[neighborSpotId] ?? { slots: [], taken: {} }) : null;
