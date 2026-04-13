@@ -305,6 +305,23 @@ export default function VisitorTab({ member, operationalMode = false }) {
         />
       </div>
 
+      {/* Month legend */}
+      {agendaView === 'Mois' && (() => {
+        const uids = [...new Set(Object.values(assignments))];
+        if (uids.length === 0) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', padding: '10px 4px 2px' }}>
+            {uids.map(uid => (
+              <div key={uid} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475569' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                               background: colorOf(uid)?.bg }} />
+                {nameOf(uid)}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Click-to-book modal */}
       {clickedSlotRange !== null && (() => {
         const { day, startSlot, endSlot } = clickedSlotRange;
