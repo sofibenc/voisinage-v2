@@ -42,8 +42,9 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
   const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
-  // Click-to-book modal
+  // Click-to-book / click-to-cancel modals
   const [clickedSlotRange, setClickedSlotRange] = useState(null); // { day, startSlot, endSlot }
+  const [cancelSlotRange,  setCancelSlotRange]  = useState(null); // { day, startSlot, endSlot }
   const [clickError,       setClickError]       = useState(null);
 
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
@@ -291,17 +292,26 @@ export default function VisitorTab({ member, operationalMode = false }) {
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
           onWeekStartChange={setAgendaWeekStart}
           onSlotClick={sid => {
-            if (assignments[String(sid)]) return; // slot taken
-            const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
-            const base = (day - 1) * SLOTS_PER_DAY;
-            const s    = sid % SLOTS_PER_DAY;
-            // Walk backward/forward to find contiguous free block around clicked slot
-            let startSlot = s;
-            while (startSlot > 0 && !assignments[String(base + startSlot - 1)]) startSlot--;
-            let endSlot = s;
-            while (endSlot < SLOTS_PER_DAY - 1 && !assignments[String(base + endSlot + 1)]) endSlot++;
+            const owner = assignments[String(sid)];
+            const day   = Math.floor(sid / SLOTS_PER_DAY) + 1;
+            const base  = (day - 1) * SLOTS_PER_DAY;
+            const s     = sid % SLOTS_PER_DAY;
             setClickError(null);
-            setClickedSlotRange({ day, startSlot, endSlot });
+            if (!owner) {
+              // Free slot → book
+              let startSlot = s;
+              while (startSlot > 0 && !assignments[String(base + startSlot - 1)]) startSlot--;
+              let endSlot = s;
+              while (endSlot < SLOTS_PER_DAY - 1 && !assignments[String(base + endSlot + 1)]) endSlot++;
+              setClickedSlotRange({ day, startSlot, endSlot });
+            } else if (owner === member?.uid) {
+              // My slot → cancel
+              let startSlot = s;
+              while (startSlot > 0 && assignments[String(base + startSlot - 1)] === member?.uid) startSlot--;
+              let endSlot = s;
+              while (endSlot < SLOTS_PER_DAY - 1 && assignments[String(base + endSlot + 1)] === member?.uid) endSlot++;
+              setCancelSlotRange({ day, startSlot, endSlot });
+            }
           }}
         />
       </div>
@@ -353,11 +363,40 @@ export default function VisitorTab({ member, operationalMode = false }) {
           />
         );
       })()}
+
+      {/* Click-to-cancel modal */}
+      {cancelSlotRange !== null && (() => {
+        const { day, startSlot, endSlot } = cancelSlotRange;
+        return (
+          <ClickModal
+            day={day} month={month} startSlot={startSlot} endSlot={endSlot}
+            accentBg="#EF4444" cancelMode error={clickError}
+            onClose={() => { setCancelSlotRange(null); setClickError(null); }}
+            onApply={async (fromSlot, toSlot) => {
+              setClickError(null);
+              if (operationalMode && !member?.isAdmin) {
+                const cur = currentDaySlotOffset();
+                if (cur >= 0 && fromSlot < cur) {
+                  setClickError('Mode opérationnel : impossible de modifier des créneaux passés.');
+                  return;
+                }
+              }
+              try {
+                await releaseRange(fromSlot, toSlot);
+                setAgendaDay(day);
+                setCancelSlotRange(null);
+              } catch (e) {
+                setClickError('Erreur : ' + e.message);
+              }
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
 
-function ClickModal({ day, month, startSlot, endSlot, accentBg, error, onClose, onApply }) {
+function ClickModal({ day, month, startSlot, endSlot, accentBg, cancelMode = false, error, onClose, onApply }) {
   const [mStart, setMStart] = useState(startSlot);
   const [mEnd,   setMEnd]   = useState(endSlot);
   const base = (day - 1) * SLOTS_PER_DAY;
@@ -371,7 +410,7 @@ function ClickModal({ day, month, startSlot, endSlot, accentBg, error, onClose, 
         onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <div style={{ fontWeight: 700, fontSize: 15 }}>
-            Réserver — {day} {MONTHS[month]}
+            {cancelMode ? 'Annuler' : 'Réserver'} — {day} {MONTHS[month]}
           </div>
           <button onClick={onClose}
             style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
@@ -399,7 +438,7 @@ function ClickModal({ day, month, startSlot, endSlot, accentBg, error, onClose, 
           style={{ width: '100%', background: disabled ? '#94A3B8' : accentBg,
                    color: 'white', border: 'none', borderRadius: 8,
                    padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
-          + Réserver
+          {cancelMode ? '− Annuler la réservation' : '+ Réserver'}
         </button>
       </div>
     </div>
