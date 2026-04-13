@@ -125,6 +125,10 @@ export default function SpotsTab({ member }) {
   // ── Neighbor spot getSlotState ───────────────────────────────────────────
   const neighborAvail = neighborSpotId ? (availability[neighborSpotId] ?? { slots: [], taken: {} }) : null;
 
+  const neighborOwnerColor = neighborSpotId
+    ? colorOf(otherSpots.find(s => s.id === neighborSpotId)?.ownerUid)
+    : null;
+
   const getNeighborSlotState = useCallback(sid => {
     if (!neighborAvail) return { state: 'empty', color: null, label: '' };
     const takenBy = neighborAvail.taken?.[String(sid)];
@@ -132,9 +136,9 @@ export default function SpotsTab({ member }) {
       const c = colorOf(takenBy);
       return { state: takenBy === member?.uid ? 'mine' : 'other', color: c, label: '' };
     }
-    if (neighborAvail.slots?.includes(sid)) return { state: 'available', color: null, label: '✦' };
+    if (neighborAvail.slots?.includes(sid)) return { state: 'available', color: neighborOwnerColor, label: '✦' };
     return { state: 'empty', color: null, label: '' };
-  }, [neighborAvail, member, colorOf]);
+  }, [neighborAvail, member, colorOf, neighborOwnerColor]);
 
   // ── Handle range apply (my spot) ─────────────────────────────────────────
   async function handleRangeApply(mode, fromSlot, toSlot, qDay) {

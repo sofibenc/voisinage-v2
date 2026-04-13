@@ -16,17 +16,27 @@ export default function MonthView({ year, month, getSlotState, onDayClick }) {
 
   function daySummary(day) {
     const base = (day - 1) * SLOTS_PER_DAY;
-    const seen = {}; // colorBg → { color, label }
-    let availableCount = 0;
+    const seen = {}; // colorBg → { color, isAvailable }
+    let pureAvailableCount = 0; // available with no color (plain green)
     for (let s = 0; s < SLOTS_PER_DAY; s++) {
       const { state, color } = getSlotState(base + s);
-      if (state === 'available') { availableCount++; continue; }
-      if (state !== 'empty' && color?.bg) {
-        if (!seen[color.bg]) seen[color.bg] = { color };
+      if (state === 'empty') continue;
+      if (state === 'available') {
+        if (color?.bg) {
+          // available with owner color — show as dot
+          if (!seen[color.bg]) seen[color.bg] = { color, isAvailable: true };
+        } else {
+          pureAvailableCount++;
+        }
+        continue;
+      }
+      if (color?.bg) {
+        seen[color.bg] = { color, isAvailable: false }; // taken overrides available
       }
     }
     const occupants = Object.values(seen);
-    return { occupants, availableCount };
+    const availableCount = pureAvailableCount + occupants.filter(o => o.isAvailable).length;
+    return { occupants, availableCount: pureAvailableCount };
   }
 
   const cells = [];
@@ -49,13 +59,19 @@ export default function MonthView({ year, month, getSlotState, onDayClick }) {
       }}>
         <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 11, lineHeight: 1.1 }}>{d}</span>
         {occupants.length === 1 && (
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: occupants[0].color.bg }} />
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: occupants[0].isAvailable ? 'transparent' : occupants[0].color.bg,
+            border: occupants[0].isAvailable ? `2px solid ${occupants[0].color.bg}` : 'none',
+          }} />
         )}
         {occupants.length > 1 && (
           <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
             {occupants.map(o => (
               <span key={o.color.bg} style={{
-                width: 6, height: 6, borderRadius: '50%', background: o.color.bg, flexShrink: 0,
+                width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                background: o.isAvailable ? 'transparent' : o.color.bg,
+                border: o.isAvailable ? `2px solid ${o.color.bg}` : 'none',
               }} />
             ))}
           </div>
