@@ -160,7 +160,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
                 <span>Voisin</span>
                 <span style={{ textAlign: 'right' }}>Total</span>
                 <span style={{ textAlign: 'right' }}>Ce mois-ci</span>
-                <span style={{ textAlign: 'right' }}>7 j.</span>
+                <span style={{ textAlign: 'right' }}>+7 j.</span>
               </div>
               {stats.map(s => (
                 <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 70px 80px 70px',
