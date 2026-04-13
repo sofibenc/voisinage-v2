@@ -42,6 +42,10 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
   const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
+  // Click-to-book modal
+  const [clickedSlotRange, setClickedSlotRange] = useState(null); // { day, startSlot, endSlot }
+  const [clickError,       setClickError]       = useState(null);
+
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
   const canGoPrev = new Date(year, month) > new Date(now.getFullYear(), now.getMonth());
@@ -280,7 +284,98 @@ export default function VisitorTab({ member, operationalMode = false }) {
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
           onWeekStartChange={setAgendaWeekStart}
+          onSlotClick={sid => {
+            if (assignments[String(sid)]) return; // slot taken
+            const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
+            const base = (day - 1) * SLOTS_PER_DAY;
+            const freeInDay = Array.from({ length: SLOTS_PER_DAY }, (_, i) => i)
+              .filter(s => !assignments[String(base + s)]);
+            const startSlot = freeInDay.length > 0 ? freeInDay[0]                      : sid % SLOTS_PER_DAY;
+            const endSlot   = freeInDay.length > 0 ? freeInDay[freeInDay.length - 1]   : sid % SLOTS_PER_DAY;
+            setClickError(null);
+            setClickedSlotRange({ day, startSlot, endSlot });
+          }}
         />
+      </div>
+
+      {/* Click-to-book modal */}
+      {clickedSlotRange !== null && (() => {
+        const { day, startSlot, endSlot } = clickedSlotRange;
+        return (
+          <ClickModal
+            day={day} month={month} startSlot={startSlot} endSlot={endSlot}
+            accentBg={myColor.bg} error={clickError}
+            onClose={() => { setClickedSlotRange(null); setClickError(null); }}
+            onApply={async (fromSlot, toSlot) => {
+              setClickError(null);
+              if (operationalMode && !member?.isAdmin) {
+                const cur = currentDaySlotOffset();
+                if (cur >= 0 && fromSlot < cur) {
+                  setClickError('Mode opérationnel : impossible de modifier des créneaux passés.');
+                  return;
+                }
+              }
+              try {
+                await claimRange(fromSlot, toSlot);
+                setAgendaDay(day);
+                setClickedSlotRange(null);
+              } catch (e) {
+                if (e.message === 'OVERLAP') setClickError("Cette plage est déjà réservée par quelqu'un d'autre.");
+                else if (e.message === 'MAX_CONSECUTIVE_DAYS') setClickError('Vous ne pouvez pas réserver plus de 2 jours consécutifs.');
+                else setClickError('Erreur : ' + e.message);
+              }
+            }}
+          />
+        );
+      })()}
+    </div>
+  );
+}
+
+function ClickModal({ day, month, startSlot, endSlot, accentBg, error, onClose, onApply }) {
+  const [mStart, setMStart] = useState(startSlot);
+  const [mEnd,   setMEnd]   = useState(endSlot);
+  const base = (day - 1) * SLOTS_PER_DAY;
+  const disabled = mStart > mEnd;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                  zIndex: 50, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', padding: 20 }}
+      onClick={onClose}>
+      <div style={{ background: 'white', borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>
+            Réserver — {day} {MONTHS[month]}
+          </div>
+          <button onClick={onClose}
+            style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+        {/* Time range */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
+          <label style={{ fontSize: 12, color: '#64748B', width: 24 }}>De</label>
+          <select value={mStart} onChange={e => setMStart(Number(e.target.value))}
+            style={{ flex: 1, padding: '7px 8px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13 }}>
+            {Array.from({ length: 48 }, (_, s) => <option key={s} value={s}>{fmtStart(s)}</option>)}
+          </select>
+          <label style={{ fontSize: 12, color: '#64748B' }}>à</label>
+          <select value={mEnd} onChange={e => setMEnd(Number(e.target.value))}
+            style={{ flex: 1, padding: '7px 8px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 13 }}>
+            {Array.from({ length: 48 }, (_, s) => <option key={s} value={s}>{fmtEnd(s)}</option>)}
+          </select>
+        </div>
+        {error && (
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+                        padding: '8px 10px', fontSize: 12, color: '#DC2626', marginBottom: 10 }}>
+            {error}
+          </div>
+        )}
+        <button onClick={() => onApply(base + mStart, base + mEnd)} disabled={disabled}
+          style={{ width: '100%', background: disabled ? '#94A3B8' : accentBg,
+                   color: 'white', border: 'none', borderRadius: 8,
+                   padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
+          + Réserver
+        </button>
       </div>
     </div>
   );
