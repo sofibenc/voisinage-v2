@@ -131,7 +131,7 @@ export default function App() {
       <div style={{ flex: 1, minHeight: 0, padding: 16, overflowY: 'auto' }}>
         <ErrorBoundary>
           {section === 'visitor'  && <VisitorTab member={member} operationalMode={operationalMode} />}
-          {section === 'myspots'  && <SpotsTab member={member} />}
+          {section === 'myspots'  && <SpotsTab member={member} operationalMode={operationalMode} />}
           {section === 'admin'    && member?.isAdmin && <AdminTab member={member} />}
         </ErrorBoundary>
       </div>

@@ -104,7 +104,7 @@ function BackButton({ onClick }) {
 }
 
 // ── Main component ───────────────────────────────────────────────────────────
-export default function SpotsTab({ member }) {
+export default function SpotsTab({ member, operationalMode = false }) {
   const now = new Date();
   const [year, setYear]   = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -134,13 +134,11 @@ export default function SpotsTab({ member }) {
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
 
   function isPast(sid) {
+    if (!operationalMode || member?.isAdmin) return false;
     const n = new Date();
     const ny = n.getFullYear(), nm = n.getMonth();
-    // Entire past month → all slots are past
     if (year < ny || (year === ny && month < nm)) return true;
-    // Future month → nothing is past
     if (year > ny || (year === ny && month > nm)) return false;
-    // Current month: compare absolute slot index
     const cur = (n.getDate() - 1) * SLOTS_PER_DAY + n.getHours() * 2 + (n.getMinutes() >= 30 ? 1 : 0);
     return sid < cur;
   }
