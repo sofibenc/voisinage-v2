@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { usageStatDoc, reservationDoc } from '../firebase.js';
 import { monthKey } from '../constants.js';
@@ -30,7 +30,14 @@ export function useUsageStats(members, year, month) {
     });
   }, [mk]);
 
-  const now = new Date();
+  const [now, setNow] = useState(() => new Date());
+
+  // Refresh every 30 minutes so past/future boundary stays accurate
+  useEffect(() => {
+    const ms = 30 * 60 * 1000;
+    const id = setInterval(() => setNow(new Date()), ms);
+    return () => clearInterval(id);
+  }, []);
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
   const todayDay   = isCurrentMonth ? now.getDate() : 1;
   const nowSlot    = isCurrentMonth
