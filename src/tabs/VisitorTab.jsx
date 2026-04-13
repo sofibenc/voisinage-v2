@@ -123,13 +123,15 @@ export default function VisitorTab({ member, operationalMode = false }) {
       {/* Month navigation */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
         <button onClick={prevMonth} disabled={!canGoPrev}
-          style={{ border: 'none', background: 'none', fontSize: 20,
+          style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                   padding: '8px 14px', fontSize: 22, lineHeight: 1,
                    color: canGoPrev ? '#1E293B' : '#CBD5E1' }}>‹</button>
         <span style={{ flex: 1, textAlign: 'center', fontWeight: 700, fontSize: 15 }}>
           {MONTHS[month]} {year}
         </span>
         <button onClick={nextMonth} disabled={!canGoNext}
-          style={{ border: 'none', background: 'none', fontSize: 20,
+          style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                   padding: '8px 14px', fontSize: 22, lineHeight: 1,
                    color: canGoNext ? '#1E293B' : '#CBD5E1' }}>›</button>
       </div>
 

@@ -184,11 +184,15 @@ export default function SpotsTab({ member }) {
   // ── Month nav (shared) ────────────────────────────────────────────────────
   const MonthNav = () => (
     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-      <button onClick={prevMonth} style={{ border: 'none', background: 'none', fontSize: 20 }}>‹</button>
+      <button onClick={prevMonth}
+        style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                 padding: '8px 14px', fontSize: 22, lineHeight: 1, color: '#1E293B' }}>‹</button>
       <span style={{ flex: 1, textAlign: 'center', fontWeight: 700, fontSize: 15 }}>
         {MONTHS[month]} {year}
       </span>
-      <button onClick={nextMonth} style={{ border: 'none', background: 'none', fontSize: 20 }}>›</button>
+      <button onClick={nextMonth}
+        style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                 padding: '8px 14px', fontSize: 22, lineHeight: 1, color: '#1E293B' }}>›</button>
     </div>
   );
 
