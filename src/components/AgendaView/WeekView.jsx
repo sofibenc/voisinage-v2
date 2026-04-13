@@ -53,8 +53,8 @@ export default function WeekView({
       {/* Week navigation */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6, gap: 8 }}>
         <button onClick={prevWeek} disabled={!canPrev}
-          style={{ border: 'none', background: '#F1F5F9', borderRadius: 6,
-                   padding: '4px 8px', fontSize: 14,
+          style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                   padding: '8px 14px', fontSize: 22, lineHeight: 1,
                    color: canPrev ? '#1E293B' : '#CBD5E1' }}>‹</button>
         <span style={{ flex: 1, textAlign: 'center', fontSize: 12,
                        fontWeight: 600, color: '#64748B' }}>
@@ -62,8 +62,8 @@ export default function WeekView({
           {new Date(year, month).toLocaleString('fr-FR', { month: 'long' })}
         </span>
         <button onClick={nextWeek} disabled={!canNext}
-          style={{ border: 'none', background: '#F1F5F9', borderRadius: 6,
-                   padding: '4px 8px', fontSize: 14,
+          style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
+                   padding: '8px 14px', fontSize: 22, lineHeight: 1,
                    color: canNext ? '#1E293B' : '#CBD5E1' }}>›</button>
       </div>
 
