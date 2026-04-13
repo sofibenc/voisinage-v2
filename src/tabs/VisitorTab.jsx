@@ -16,7 +16,8 @@ export default function VisitorTab({ member, operationalMode = false }) {
 
   const { assignments, claimRange, releaseRange } = useReservations(member?.uid, year, month);
   const { members, colorOf } = useMembers();
-  const { stats } = useUsageStats(members, year, month);
+  // Stats always anchored to today, not the selected month
+  const { stats } = useUsageStats(members, now.getFullYear(), now.getMonth());
 
   const myColor = colorOf(member?.uid);
   const nameOf  = useMemo(() => {
@@ -27,6 +28,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const todayDay = (year === now.getFullYear() && month === now.getMonth()) ? now.getDate() : 1;
 
   // Range form state
+  const [showStats, setShowStats] = useState(false);
   const [showForm,  setShowForm]  = useState(false);
   const [rangeMode, setRangeMode] = useState('add'); // 'add' | 'remove'
   const [qDay,      setQDay]      = useState(todayDay);
@@ -158,41 +160,52 @@ export default function VisitorTab({ member, operationalMode = false }) {
                    color: canGoNext ? '#1E293B' : '#CBD5E1' }}>›</button>
       </div>
 
-      {/* Usage stats table */}
+      {/* Usage stats table — collapsible, always anchored to today */}
       {stats.length > 0 && (
         <div style={{ background: 'white', borderRadius: 12, marginBottom: 12,
                       boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
-                        fontSize: 11, fontWeight: 700, color: '#94A3B8',
-                        padding: '8px 12px', borderBottom: '1px solid #F1F5F9',
-                        textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            <span>Voisin</span>
-            <span style={{ textAlign: 'right' }}>Total consommé</span>
-            <span style={{ textAlign: 'right' }}>7 prochains jours</span>
-          </div>
-          {stats.map(s => (
-            <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
-                                      padding: '8px 12px', fontSize: 13,
-                                      borderBottom: '1px solid #F8FAFC',
-                                      background: s.uid === member?.uid ? s.color.light : 'white' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%',
-                               background: s.color.bg, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ fontWeight: s.uid === member?.uid ? 700 : 400,
-                               color: s.uid === member?.uid ? s.color.text : '#1E293B' }}>
-                  {s.name || s.uid.slice(0, 6)}
-                  {s.uid === member?.uid && ' (moi)'}
-                </span>
-              </span>
-              <span style={{ textAlign: 'right', color: '#475569', fontWeight: 600 }}>
-                {s.pastHours % 1 === 0 ? s.pastHours : s.pastHours.toFixed(1)}h
-              </span>
-              <span style={{ textAlign: 'right', color: s.next7Hours > 0 ? s.color.text : '#CBD5E1',
-                             fontWeight: s.next7Hours > 0 ? 700 : 400 }}>
-                {s.next7Hours > 0 ? `${s.next7Hours % 1 === 0 ? s.next7Hours : s.next7Hours.toFixed(1)}h` : '—'}
-              </span>
-            </div>
-          ))}
+          <button onClick={() => setShowStats(v => !v)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                     padding: '10px 12px', border: 'none', background: 'none',
+                     fontSize: 13, fontWeight: 700, color: '#1E293B', cursor: 'pointer' }}>
+            <span>📊 Consommation des voisins</span>
+            <span style={{ fontSize: 11, color: '#94A3B8' }}>{showStats ? '▲' : '▼'}</span>
+          </button>
+          {showStats && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
+                            fontSize: 11, fontWeight: 700, color: '#94A3B8',
+                            padding: '6px 12px', borderTop: '1px solid #F1F5F9',
+                            textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span>Voisin</span>
+                <span style={{ textAlign: 'right' }}>Total consommé</span>
+                <span style={{ textAlign: 'right' }}>7 prochains jours</span>
+              </div>
+              {stats.map(s => (
+                <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 90px',
+                                          padding: '8px 12px', fontSize: 13,
+                                          borderTop: '1px solid #F8FAFC',
+                                          background: s.uid === member?.uid ? s.color.light : 'white' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%',
+                                   background: s.color.bg, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontWeight: s.uid === member?.uid ? 700 : 400,
+                                   color: s.uid === member?.uid ? s.color.text : '#1E293B' }}>
+                      {s.name || s.uid.slice(0, 6)}
+                      {s.uid === member?.uid && ' (moi)'}
+                    </span>
+                  </span>
+                  <span style={{ textAlign: 'right', color: '#475569', fontWeight: 600 }}>
+                    {s.pastHours % 1 === 0 ? s.pastHours : s.pastHours.toFixed(1)}h
+                  </span>
+                  <span style={{ textAlign: 'right', color: s.next7Hours > 0 ? s.color.text : '#CBD5E1',
+                                 fontWeight: s.next7Hours > 0 ? 700 : 400 }}>
+                    {s.next7Hours > 0 ? `${s.next7Hours % 1 === 0 ? s.next7Hours : s.next7Hours.toFixed(1)}h` : '—'}
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 
