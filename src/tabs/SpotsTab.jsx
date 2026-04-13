@@ -379,7 +379,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
 
       {/* Month legend — reservers only (available slots are plain green, no colored dot) */}
       {agendaView === 'Mois' && (() => {
-        const takerUids = [...new Set(Object.values(myAvail.taken ?? {}))];
+        const takerUids = [...new Set(Object.values(myAvail.taken ?? {}))].filter(uid => members.find(m => m.uid === uid));
         if (takerUids.length === 0) return null;
         return (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', padding: '10px 4px 2px' }}>
@@ -496,7 +496,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
           const items = [];
           const hasAvailable = (neighborAvail?.slots ?? []).some(s => !neighborAvail?.taken?.[String(s)]);
           if (hasAvailable) items.push({ color: ownerColor, name: owner?.name ?? '?', isAvailable: true });
-          const takerUids = [...new Set(Object.values(neighborAvail?.taken ?? {}))];
+          const takerUids = [...new Set(Object.values(neighborAvail?.taken ?? {}))].filter(uid => members.find(m => m.uid === uid));
           for (const uid of takerUids) {
             items.push({ color: colorOf(uid), name: members.find(m => m.uid === uid)?.name ?? '?', isAvailable: false });
           }
