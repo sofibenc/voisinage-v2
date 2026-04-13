@@ -154,17 +154,17 @@ export default function VisitorTab({ member, operationalMode = false }) {
           </button>
           {showStats && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 72px 80px 60px',
-                            fontSize: 10, fontWeight: 700, color: '#94A3B8',
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 44px',
+                            fontSize: 11, fontWeight: 700, color: '#94A3B8',
                             padding: '6px 12px', borderTop: '1px solid #F1F5F9',
                             textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 <span>Voisin</span>
-                <span style={{ textAlign: 'right' }}>Ce mois</span>
-                <span style={{ textAlign: 'right' }}>Mois dernier</span>
-                <span style={{ textAlign: 'right' }}>+7 j.</span>
+                <span style={{ textAlign: 'right' }}>M</span>
+                <span style={{ textAlign: 'right' }}>M-1</span>
+                <span style={{ textAlign: 'right' }}>+7J</span>
               </div>
               {stats.map(s => (
-                <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 72px 80px 60px',
+                <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 44px',
                                           padding: '8px 12px', fontSize: 13,
                                           borderTop: '1px solid #F8FAFC',
                                           background: s.uid === member?.uid ? s.color.light : 'white' }}>
@@ -178,19 +178,32 @@ export default function VisitorTab({ member, operationalMode = false }) {
                     </span>
                   </span>
                   <span style={{ textAlign: 'right', color: s.monthPastHours > 0 ? '#475569' : '#CBD5E1',
-                                 fontWeight: s.monthPastHours > 0 ? 600 : 400 }}>
+                                 fontWeight: s.monthPastHours > 0 ? 600 : 400, fontSize: 12 }}>
                     {s.monthPastHours > 0 ? `${s.monthPastHours % 1 === 0 ? s.monthPastHours : s.monthPastHours.toFixed(1)}h` : '—'}
                   </span>
                   <span style={{ textAlign: 'right', color: s.lastMonthHours > 0 ? '#475569' : '#CBD5E1',
-                                 fontWeight: s.lastMonthHours > 0 ? 600 : 400 }}>
+                                 fontWeight: s.lastMonthHours > 0 ? 600 : 400, fontSize: 12 }}>
                     {s.lastMonthHours > 0 ? `${s.lastMonthHours % 1 === 0 ? s.lastMonthHours : s.lastMonthHours.toFixed(1)}h` : '—'}
                   </span>
                   <span style={{ textAlign: 'right', color: s.next7Hours > 0 ? s.color.text : '#CBD5E1',
-                                 fontWeight: s.next7Hours > 0 ? 700 : 400 }}>
+                                 fontWeight: s.next7Hours > 0 ? 700 : 400, fontSize: 12 }}>
                     {s.next7Hours > 0 ? `${s.next7Hours % 1 === 0 ? s.next7Hours : s.next7Hours.toFixed(1)}h` : '—'}
                   </span>
                 </div>
               ))}
+              {/* Legend */}
+              <div style={{ display: 'flex', gap: 12, padding: '8px 12px',
+                            borderTop: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
+                {[
+                  { label: 'M', desc: 'Ce mois-ci (passé)' },
+                  { label: 'M-1', desc: 'Mois dernier' },
+                  { label: '+7J', desc: '7 prochains jours' },
+                ].map(({ label, desc }) => (
+                  <span key={label} style={{ fontSize: 11, color: '#94A3B8' }}>
+                    <strong style={{ color: '#64748B' }}>{label}</strong> = {desc}
+                  </span>
+                ))}
+              </div>
             </>
           )}
         </div>
