@@ -250,7 +250,12 @@ export default function SpotsTab({ member }) {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: ownerColor?.bg }} />
-          <span style={{ fontWeight: 700, fontSize: 15 }}>Place de {owner?.name ?? '?'}</span>
+          <div>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>Place de {owner?.name ?? '?'}</span>
+            {owner?.spotNumber && (
+              <span style={{ fontSize: 13, color: '#94A3B8', marginLeft: 6 }}>· N° {owner.spotNumber}</span>
+            )}
+          </div>
         </div>
         <MonthNav />
 
@@ -386,6 +391,11 @@ export default function SpotsTab({ member }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>
                     Place de {owner?.name ?? spot.ownerUid}
+                    {owner?.spotNumber && (
+                      <span style={{ fontSize: 12, fontWeight: 400, color: '#94A3B8', marginLeft: 6 }}>
+                        · N° {owner.spotNumber}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: 12, color: '#94A3B8' }}>
                     {freeCount / 2}h libres ce mois
