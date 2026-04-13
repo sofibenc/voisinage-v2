@@ -15,27 +15,30 @@ export default function MonthView({ year, month, getSlotState, onDayClick }) {
   const firstDow    = (new Date(year, month, 1).getDay() + 6) % 7; // 0=Mon
 
   function daySummary(day) {
-    const base   = (day - 1) * SLOTS_PER_DAY;
-    const seen   = {}; // colorBg → { color, label }
-    let mineCount = 0;
+    const base = (day - 1) * SLOTS_PER_DAY;
+    const seen = {}; // colorBg → { color, label }
+    let availableCount = 0;
     for (let s = 0; s < SLOTS_PER_DAY; s++) {
-      const { state, color, label } = getSlotState(base + s);
-      if (state === 'mine') mineCount++;
+      const { state, color } = getSlotState(base + s);
+      if (state === 'available') { availableCount++; continue; }
       if (state !== 'empty' && color?.bg) {
-        if (!seen[color.bg]) seen[color.bg] = { color, label };
+        if (!seen[color.bg]) seen[color.bg] = { color };
       }
     }
-    const occupants = Object.values(seen); // all distinct occupants
-    return { occupants, mineCount };
+    const occupants = Object.values(seen);
+    return { occupants, availableCount };
   }
 
   const cells = [];
   // Empty cells before the first day
   for (let i = 0; i < firstDow; i++) cells.push(<div key={`e${i}`} />);
   for (let d = 1; d <= daysInMonth; d++) {
-    const { occupants, mineCount } = daySummary(d);
-    const borderColor = occupants.length === 1 ? occupants[0].color.bg : occupants.length > 1 ? '#94A3B8' : '#E2E8F0';
-    const bgColor     = occupants.length === 1 ? `${occupants[0].color.bg}22` : occupants.length > 1 ? '#F1F5F9' : '#F8FAFC';
+    const { occupants, availableCount } = daySummary(d);
+    const hasAvailable = availableCount > 0;
+    const borderColor = occupants.length > 0 ? (occupants.length === 1 ? occupants[0].color.bg : '#94A3B8')
+                      : hasAvailable ? '#22C55E' : '#E2E8F0';
+    const bgColor     = occupants.length > 0 ? (occupants.length === 1 ? `${occupants[0].color.bg}22` : '#F1F5F9')
+                      : hasAvailable ? '#F0FDF4' : '#F8FAFC';
     cells.push(
       <div key={d} onClick={() => onDayClick?.(d)} style={{
         aspectRatio: '1', display: 'flex', flexDirection: 'column',
@@ -46,11 +49,7 @@ export default function MonthView({ year, month, getSlotState, onDayClick }) {
       }}>
         <span style={{ fontWeight: 700, color: '#1E293B', fontSize: 11, lineHeight: 1.1 }}>{d}</span>
         {occupants.length === 1 && (
-          <span style={{ fontSize: 8, color: occupants[0].color.bg, fontWeight: 700,
-                         maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis',
-                         whiteSpace: 'nowrap', lineHeight: 1.1 }}>
-            {occupants[0].label.split(' ')[0]}
-          </span>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: occupants[0].color.bg }} />
         )}
         {occupants.length > 1 && (
           <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -60,6 +59,11 @@ export default function MonthView({ year, month, getSlotState, onDayClick }) {
               }} />
             ))}
           </div>
+        )}
+        {occupants.length === 0 && hasAvailable && (
+          <span style={{ fontSize: 8, color: '#16A34A', fontWeight: 700, lineHeight: 1.1 }}>
+            {availableCount / 2}h
+          </span>
         )}
       </div>
     );
