@@ -351,7 +351,7 @@ export default function SpotsTab({ member }) {
         MES PROPOSITIONS
       </div>
       <button onClick={() => setView('myspot')}
-        style={{ width: '100%', background: 'white', border: `1px solid ${AMBER.bg}`,
+        style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                  borderRadius: 12, padding: '12px 16px', fontSize: 14,
                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                  marginBottom: 20 }}>
