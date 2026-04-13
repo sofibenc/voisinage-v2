@@ -140,7 +140,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
       return { label: `Annuler sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has, from };
     }
     const hasAny = Object.values(assignments).some(uid => uid === member?.uid);
-    return hasAny ? { label: `Annuler toutes mes réservations de ${MONTHS[month]}`, action: () => releaseRange(0, daysInMonth * SLOTS_PER_DAY - 1), has: true, from: 0 } : null;
+    return { label: `Annuler toutes mes réservations de ${MONTHS[month]}`, action: () => releaseRange(0, daysInMonth * SLOTS_PER_DAY - 1), has: hasAny, from: 0 };
   }
 
   const clearScope = getClearScope();
