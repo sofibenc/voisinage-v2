@@ -112,7 +112,7 @@ export default function App() {
                    border: 'none', borderRadius: 10,
                    background: section === 'myspots' ? MYSPOTS.bg : MYSPOTS.light,
                    color: section === 'myspots' ? 'white' : MYSPOTS.text }}>
-          🔑 Ma place
+          🔑 Place Voisin
         </button>
       </div>
 
