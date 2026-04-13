@@ -248,8 +248,8 @@ export default function VisitorTab({ member, operationalMode = false }) {
                 {formError}
               </div>
             )}
-            <button onClick={applyForm} disabled={qStart > qEnd}
-              style={{ background: qStart > qEnd ? '#94A3B8' : rangeMode === 'remove' ? '#EF4444' : myColor.bg,
+            <button onClick={applyForm} disabled={qDayEnd === qDay && qStart > qEnd}
+              style={{ background: qDayEnd === qDay && qStart > qEnd ? '#94A3B8' : rangeMode === 'remove' ? '#EF4444' : myColor.bg,
                        color: 'white', border: 'none', borderRadius: 8,
                        padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
               {rangeMode === 'remove' ? 'Annuler la réservation' : 'Réserver'}

@@ -72,8 +72,8 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
           {Array.from({ length: 48 }, (_, s) => <option key={s} value={s}>{fmtEnd(s)}</option>)}
         </select>
       </div>
-      <button onClick={apply} disabled={qStart > qEnd}
-        style={{ background: qStart > qEnd ? '#94A3B8' : rangeMode === modes[0] ? accentBg : '#EF4444',
+      <button onClick={apply} disabled={qDayEnd === qDay && qStart > qEnd}
+        style={{ background: qDayEnd === qDay && qStart > qEnd ? '#94A3B8' : rangeMode === modes[0] ? accentBg : '#EF4444',
                  color: 'white', border: 'none', borderRadius: 8,
                  padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
         {modeLabels[modes.indexOf(rangeMode)]}
