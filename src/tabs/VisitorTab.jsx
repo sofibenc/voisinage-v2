@@ -39,7 +39,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [clearError, setClearError] = useState(null);
 
   // Agenda state
-  const [agendaView,      setAgendaView]      = useState('Semaine');
+  const [agendaView,      setAgendaView]      = useState('Mois');
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
   const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 

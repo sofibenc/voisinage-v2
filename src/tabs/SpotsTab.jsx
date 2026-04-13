@@ -97,7 +97,7 @@ export default function SpotsTab({ member }) {
   const [view,             setView]             = useState('main');
   const [neighborSpotId,   setNeighborSpotId]   = useState(null);
   const [showRangeForm,    setShowRangeForm]     = useState(false);
-  const [agendaView,       setAgendaView]        = useState('Semaine');
+  const [agendaView,       setAgendaView]        = useState('Mois');
   const [agendaDay,        setAgendaDay]         = useState(now.getDate());
   const [agendaWeekStart,  setAgendaWeekStart]   = useState(null);
   const [confirmSlot,      setConfirmSlot]       = useState(null);
