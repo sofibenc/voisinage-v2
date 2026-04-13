@@ -201,11 +201,11 @@ export default function SpotsTab({ member }) {
   // ════════════════════════════════════════════════════════════════════════════
   if (view === 'myspot') return (
     <div>
+      <MonthNav />
       <button onClick={goBack}
         style={{ border: 'none', background: 'none', fontSize: 14, color: '#64748B', marginBottom: 10 }}>
         ← Retour
       </button>
-      <MonthNav />
 
       {/* Range form toggle */}
       <div style={{ marginBottom: 10 }}>
@@ -250,20 +250,20 @@ export default function SpotsTab({ member }) {
     const ownerColor = colorOf(spot?.ownerUid);
     return (
       <div>
-        <button onClick={goBack}
-          style={{ border: 'none', background: 'none', fontSize: 14, color: '#64748B', marginBottom: 10 }}>
-          ← Retour
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: ownerColor?.bg }} />
+        <MonthNav />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <button onClick={goBack}
+            style={{ border: 'none', background: 'none', fontSize: 14, color: '#64748B' }}>
+            ← Retour
+          </button>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: ownerColor?.bg }} />
           <div>
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Place de {owner?.name ?? '?'}</span>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>Place de {owner?.name ?? '?'}</span>
             {owner?.spotNumber && (
-              <span style={{ fontSize: 13, color: '#94A3B8', marginLeft: 6 }}>· N° {owner.spotNumber}</span>
+              <span style={{ fontSize: 12, color: '#94A3B8', marginLeft: 6 }}>· N° {owner.spotNumber}</span>
             )}
           </div>
         </div>
-        <MonthNav />
 
         {/* Range form */}
         <div style={{ marginBottom: 10 }}>
