@@ -249,6 +249,23 @@ export default function SpotsTab({ member }) {
           onWeekStartChange={setAgendaWeekStart}
         />
       </div>
+
+      {/* Month legend — reservers only (available slots are plain green, no colored dot) */}
+      {agendaView === 'Mois' && (() => {
+        const takerUids = [...new Set(Object.values(myAvail.taken ?? {}))];
+        if (takerUids.length === 0) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', padding: '10px 4px 2px' }}>
+            {takerUids.map(uid => (
+              <div key={uid} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475569' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                               background: colorOf(uid)?.bg }} />
+                {members.find(m => m.uid === uid)?.name ?? '?'}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 
