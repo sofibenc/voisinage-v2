@@ -224,9 +224,9 @@ export default function VisitorTab({ member, operationalMode = false }) {
                 <button key={mode} onClick={() => { setRangeMode(mode); setFormError(null); }}
                   style={{ flex: 1, padding: '6px 0', fontSize: 12, fontWeight: 600,
                            border: 'none', borderRadius: 8,
-                           background: rangeMode === mode ? (mode === 'add' ? myColor.bg : '#EF4444') : '#F1F5F9',
+                           background: rangeMode === mode ? (mode === 'add' ? '#10B981' : '#EF4444') : '#F1F5F9',
                            color: rangeMode === mode ? 'white' : '#64748B' }}>
-                  {mode === 'add' ? '+ Réserver' : '− Annuler'}
+                  {mode === 'add' ? '+ Réservation' : '− Annulation'}
                 </button>
               ))}
             </div>
@@ -271,7 +271,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
               </div>
             )}
             <button onClick={applyForm} disabled={qDayEnd === qDay && qStart > qEnd}
-              style={{ background: qDayEnd === qDay && qStart > qEnd ? '#94A3B8' : rangeMode === 'remove' ? '#EF4444' : myColor.bg,
+              style={{ background: qDayEnd === qDay && qStart > qEnd ? '#94A3B8' : rangeMode === 'remove' ? '#EF4444' : '#10B981',
                        color: 'white', border: 'none', borderRadius: 8,
                        padding: '10px 0', fontSize: 14, fontWeight: 700 }}>
               {rangeMode === 'remove' ? 'Annuler la réservation' : 'Réserver'}
