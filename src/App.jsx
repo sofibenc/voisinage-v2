@@ -87,6 +87,12 @@ export default function App() {
               ⚙️
             </button>
           )}
+          <button onClick={() => setShowWelcome(true)}
+            style={{ background: '#F1F5F9', border: 'none', borderRadius: 8,
+                     padding: '5px 10px', fontSize: 12, fontWeight: 600,
+                     color: '#64748B', cursor: 'pointer' }}>
+            ?
+          </button>
           <button onClick={() => setShowProfile(true)}
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                      display: 'flex', alignItems: 'center', gap: 8 }}>
