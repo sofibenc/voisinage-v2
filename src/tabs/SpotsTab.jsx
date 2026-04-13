@@ -158,8 +158,9 @@ export default function SpotsTab({ member }) {
   });
 
   // ── My spot info ──────────────────────────────────────────────────────────
-  const mySlotCount   = myAvail.slots?.length ?? 0;
-  const myTakenCount  = Object.keys(myAvail.taken ?? {}).length;
+  const mySlotCount    = myAvail.slots?.length ?? 0;
+  const myReserverUids = new Set(Object.values(myAvail.taken ?? {}));
+  const myReserverCount = myReserverUids.size;
 
   // ── Back button ───────────────────────────────────────────────────────────
   function goBack() { setView('main'); setNeighborSpotId(null); setShowRangeForm(false); setShowNeighborForm(false); setNeighborError(null); }
@@ -360,7 +361,7 @@ export default function SpotsTab({ member }) {
             <div style={{ fontWeight: 600, color: AMBER.text }}>Ma place</div>
             <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>
               {mySlotCount > 0
-                ? `${mySlotCount / 2}h disponibles · ${myTakenCount} réservation${myTakenCount > 1 ? 's' : ''}`
+                ? `${mySlotCount / 2}h proposées${myReserverCount > 0 ? ` · ${myReserverCount} voisin${myReserverCount > 1 ? 's' : ''} a réservé` : ''}`
                 : 'Aucune disponibilité ce mois'}
             </div>
           </div>
