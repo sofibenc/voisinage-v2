@@ -49,7 +49,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
 
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
-  const canGoPrev = true; // allow browsing past months for history
+  const canGoPrev = new Date(year, month) > new Date(2026, 0); // limit: January 2026
 
   function prevMonth() {
     const nm = month === 0 ? 11 : month - 1;
