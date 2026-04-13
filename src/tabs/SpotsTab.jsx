@@ -129,7 +129,8 @@ export default function SpotsTab({ member }) {
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
 
-  function prevMonth() { if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
+  const canGoPrev = new Date(year, month) > new Date(2026, 0);
+  function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
 
   function isPast(sid) {
@@ -231,9 +232,10 @@ export default function SpotsTab({ member }) {
   // ── Month nav (shared) ────────────────────────────────────────────────────
   const MonthNav = () => (
     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-      <button onClick={prevMonth}
+      <button onClick={prevMonth} disabled={!canGoPrev}
         style={{ border: 'none', background: '#F1F5F9', borderRadius: 8,
-                 padding: '8px 14px', fontSize: 22, lineHeight: 1, color: '#1E293B' }}>‹</button>
+                 padding: '8px 14px', fontSize: 22, lineHeight: 1,
+                 color: canGoPrev ? '#1E293B' : '#CBD5E1' }}>‹</button>
       <span style={{ flex: 1, textAlign: 'center', fontWeight: 700, fontSize: 15 }}>
         {MONTHS[month]} {year}
       </span>
