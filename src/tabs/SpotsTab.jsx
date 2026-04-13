@@ -13,10 +13,11 @@ const AMBER = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 // ── Range form (reusable) ────────────────────────────────────────────────────
 function RangeForm({ daysInMonth, month, accentBg, onApply,
                      modes = ['add', 'remove'],
-                     modeLabels = ['+ Ajouter', '− Supprimer'] }) {
+                     modeLabels = ['+ Ajouter', '− Supprimer'],
+                     defaultDay = 1, defaultDayEnd = 1 }) {
   const [rangeMode, setRangeMode] = useState(modes[0]);
-  const [qDay,    setQDay]    = useState(1);
-  const [qDayEnd, setQDayEnd] = useState(1);
+  const [qDay,    setQDay]    = useState(defaultDay);
+  const [qDayEnd, setQDayEnd] = useState(defaultDayEnd);
   const [qStart,  setQStart]  = useState(0);
   const [qEnd,    setQEnd]    = useState(47);
 
@@ -102,6 +103,7 @@ export default function SpotsTab({ member }) {
   const [agendaWeekStart,  setAgendaWeekStart]   = useState(null);
   const [confirmSlot,      setConfirmSlot]       = useState(null);
   const [showNeighborForm, setShowNeighborForm]  = useState(false);
+  const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
 
   function prevMonth() { if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
@@ -272,7 +274,7 @@ export default function SpotsTab({ member }) {
 
         {/* Range form */}
         <div style={{ marginBottom: 10 }}>
-          <button onClick={() => { setShowNeighborForm(v => !v); setNeighborError(null); }}
+          <button onClick={() => { setShowNeighborForm(v => !v); setNeighborError(null); setNeighborFormKey(k => k + 1); }}
             style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                      borderRadius: showNeighborForm ? '10px 10px 0 0' : 10,
                      padding: '9px 12px', fontSize: 13, color: '#475569',
@@ -285,11 +287,18 @@ export default function SpotsTab({ member }) {
                           borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
                           display: 'flex', flexDirection: 'column', gap: 10 }}>
               <RangeForm
+                key={neighborFormKey}
                 daysInMonth={daysInMonth} month={month}
                 accentBg="#16A34A"
                 onApply={handleNeighborRangeApply}
                 modeLabels={['+ Réserver', '− Annuler']}
                 modes={['add', 'remove']}
+                defaultDay={agendaView === 'Jour' ? agendaDay
+                  : agendaView === 'Semaine' ? (agendaWeekStart ?? agendaDay)
+                  : 1}
+                defaultDayEnd={agendaView === 'Jour' ? agendaDay
+                  : agendaView === 'Semaine' ? Math.min(daysInMonth, (agendaWeekStart ?? agendaDay) + 6)
+                  : 1}
               />
               {neighborError && (
                 <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
@@ -307,6 +316,7 @@ export default function SpotsTab({ member }) {
             getSlotState={getNeighborSlotState}
             controlledView={agendaView} onViewChange={setAgendaView}
             controlledDay={agendaDay}   onDayChange={setAgendaDay}
+            onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
               if (neighborAvail?.slots?.includes(sid) && !neighborAvail?.taken?.[String(sid)]) {
                 setConfirmSlot(sid);
