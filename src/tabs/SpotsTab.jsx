@@ -323,13 +323,14 @@ export default function SpotsTab({ member }) {
             onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
               if (neighborAvail?.slots?.includes(sid) && !neighborAvail?.taken?.[String(sid)]) {
-                const day = Math.floor(sid / SLOTS_PER_DAY) + 1;
+                const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
                 const base = (day - 1) * SLOTS_PER_DAY;
-                const availableInDay = (neighborAvail.slots ?? [])
-                  .filter(s => s >= base && s < base + SLOTS_PER_DAY && !neighborAvail.taken?.[String(s)])
-                  .map(s => s % SLOTS_PER_DAY);
-                const startSlot = availableInDay.length > 0 ? Math.min(...availableInDay) : sid % SLOTS_PER_DAY;
-                const endSlot   = availableInDay.length > 0 ? Math.max(...availableInDay) : sid % SLOTS_PER_DAY;
+                const s    = sid % SLOTS_PER_DAY;
+                const isFree = i => (neighborAvail.slots ?? []).includes(base + i) && !neighborAvail.taken?.[String(base + i)];
+                let startSlot = s;
+                while (startSlot > 0 && isFree(startSlot - 1)) startSlot--;
+                let endSlot = s;
+                while (endSlot < SLOTS_PER_DAY - 1 && isFree(endSlot + 1)) endSlot++;
                 setClickedSlotRange({ day, startSlot, endSlot });
               }
             }}

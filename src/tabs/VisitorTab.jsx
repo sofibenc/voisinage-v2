@@ -288,10 +288,12 @@ export default function VisitorTab({ member, operationalMode = false }) {
             if (assignments[String(sid)]) return; // slot taken
             const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
             const base = (day - 1) * SLOTS_PER_DAY;
-            const freeInDay = Array.from({ length: SLOTS_PER_DAY }, (_, i) => i)
-              .filter(s => !assignments[String(base + s)]);
-            const startSlot = freeInDay.length > 0 ? freeInDay[0]                      : sid % SLOTS_PER_DAY;
-            const endSlot   = freeInDay.length > 0 ? freeInDay[freeInDay.length - 1]   : sid % SLOTS_PER_DAY;
+            const s    = sid % SLOTS_PER_DAY;
+            // Walk backward/forward to find contiguous free block around clicked slot
+            let startSlot = s;
+            while (startSlot > 0 && !assignments[String(base + startSlot - 1)]) startSlot--;
+            let endSlot = s;
+            while (endSlot < SLOTS_PER_DAY - 1 && !assignments[String(base + endSlot + 1)]) endSlot++;
             setClickError(null);
             setClickedSlotRange({ day, startSlot, endSlot });
           }}
