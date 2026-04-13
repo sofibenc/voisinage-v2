@@ -88,6 +88,21 @@ function RangeForm({ daysInMonth, month, accentBg, onApply,
   );
 }
 
+// ── Back button ──────────────────────────────────────────────────────────────
+function BackButton({ onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+      background: 'white', border: '1px solid #E2E8F0', borderRadius: 12,
+      padding: '12px 16px', marginBottom: 10, cursor: 'pointer',
+      fontSize: 14, fontWeight: 600, color: '#475569',
+    }}>
+      <span style={{ fontSize: 20, lineHeight: 1 }}>←</span>
+      Retour à la liste
+    </button>
+  );
+}
+
 // ── Main component ───────────────────────────────────────────────────────────
 export default function SpotsTab({ member }) {
   const now = new Date();
@@ -215,10 +230,7 @@ export default function SpotsTab({ member }) {
   if (view === 'myspot') return (
     <div>
       <MonthNav />
-      <button onClick={goBack}
-        style={{ border: 'none', background: 'none', fontSize: 14, color: '#64748B', marginBottom: 10 }}>
-        ← Retour
-      </button>
+      <BackButton onClick={goBack} />
 
       {/* Range form toggle */}
       <div style={{ marginBottom: 10 }}>
@@ -281,11 +293,8 @@ export default function SpotsTab({ member }) {
     return (
       <div>
         <MonthNav />
+        <BackButton onClick={goBack} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <button onClick={goBack}
-            style={{ border: 'none', background: 'none', fontSize: 14, color: '#64748B' }}>
-            ← Retour
-          </button>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: ownerColor?.bg }} />
           <div>
             <span style={{ fontWeight: 700, fontSize: 14 }}>Place de {owner?.name ?? '?'}</span>
