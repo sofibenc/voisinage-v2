@@ -123,6 +123,8 @@ export default function SpotsTab({ member }) {
   const [agendaWeekStart,  setAgendaWeekStart]   = useState(null);
   const [clickedSlotRange, setClickedSlotRange]  = useState(null); // { day, startSlot, endSlot }
   const [cancelSlotRange,  setCancelSlotRange]   = useState(null); // { day, startSlot, endSlot }
+  const [myAddSlotRange,   setMyAddSlotRange]    = useState(null); // myspot: add avail
+  const [myRemoveSlotRange,setMyRemoveSlotRange] = useState(null); // myspot: remove avail
   const [showNeighborForm, setShowNeighborForm]  = useState(false);
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
@@ -261,8 +263,101 @@ export default function SpotsTab({ member }) {
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
           onWeekStartChange={setAgendaWeekStart}
+          onSlotClick={sid => {
+            const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
+            const base = (day - 1) * SLOTS_PER_DAY;
+            const s    = sid % SLOTS_PER_DAY;
+            if (myAvail.taken?.[String(sid)]) return; // reserved by a neighbor, can't touch
+            if (myAvail.slots?.includes(sid)) {
+              // My available slot → remove
+              let startSlot = s;
+              while (startSlot > 0 && myAvail.slots.includes(base + startSlot - 1) && !myAvail.taken?.[String(base + startSlot - 1)]) startSlot--;
+              let endSlot = s;
+              while (endSlot < SLOTS_PER_DAY - 1 && myAvail.slots.includes(base + endSlot + 1) && !myAvail.taken?.[String(base + endSlot + 1)]) endSlot++;
+              setMyRemoveSlotRange({ day, startSlot, endSlot });
+            } else {
+              // Empty slot → add
+              const isEmpty = i => !myAvail.slots?.includes(base + i);
+              let startSlot = s;
+              while (startSlot > 0 && isEmpty(startSlot - 1)) startSlot--;
+              let endSlot = s;
+              while (endSlot < SLOTS_PER_DAY - 1 && isEmpty(endSlot + 1)) endSlot++;
+              setMyAddSlotRange({ day, startSlot, endSlot });
+            }
+          }}
         />
       </div>
+
+      {/* Click-to-add modal */}
+      {myAddSlotRange !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                      zIndex: 50, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', padding: 20 }}
+          onClick={() => setMyAddSlotRange(null)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>Proposer — {myAddSlotRange.day} {MONTHS[month]}</div>
+              <button onClick={() => setMyAddSlotRange(null)}
+                style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            <RangeForm
+              key={`myadd-${myAddSlotRange.day}-${myAddSlotRange.startSlot}`}
+              daysInMonth={daysInMonth} month={month}
+              accentBg={AMBER.bg}
+              modes={['add']}
+              modeLabels={['+ Proposer ce créneau']}
+              defaultDay={myAddSlotRange.day}
+              defaultDayEnd={myAddSlotRange.day}
+              defaultStart={myAddSlotRange.startSlot}
+              defaultEnd={myAddSlotRange.endSlot}
+              hideDayRange
+              onApply={async (_mode, fromSlot, toSlot, qDay) => {
+                const spotId = mySpot?.id ?? await ensureMySpot(`Place de ${member?.name ?? 'moi'}`);
+                await mergeMySlots(spotId, buildSlotList(fromSlot, toSlot));
+                setAgendaDay(qDay);
+                setMyAddSlotRange(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Click-to-remove modal */}
+      {myRemoveSlotRange !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                      zIndex: 50, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', padding: 20 }}
+          onClick={() => setMyRemoveSlotRange(null)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>Retirer — {myRemoveSlotRange.day} {MONTHS[month]}</div>
+              <button onClick={() => setMyRemoveSlotRange(null)}
+                style={{ border: 'none', background: 'none', fontSize: 20, color: '#94A3B8', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            <RangeForm
+              key={`myremove-${myRemoveSlotRange.day}-${myRemoveSlotRange.startSlot}`}
+              daysInMonth={daysInMonth} month={month}
+              accentBg="#EF4444"
+              modes={['remove']}
+              modeLabels={['− Retirer la disponibilité']}
+              defaultDay={myRemoveSlotRange.day}
+              defaultDayEnd={myRemoveSlotRange.day}
+              defaultStart={myRemoveSlotRange.startSlot}
+              defaultEnd={myRemoveSlotRange.endSlot}
+              hideDayRange
+              confirmMessage="Retirer la disponibilité de cette plage ?"
+              onApply={async (_mode, fromSlot, toSlot, qDay) => {
+                const spotId = mySpot?.id;
+                if (spotId) await clearMyRange(spotId, fromSlot, toSlot);
+                setAgendaDay(qDay);
+                setMyRemoveSlotRange(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Month legend — reservers only (available slots are plain green, no colored dot) */}
       {agendaView === 'Mois' && (() => {
