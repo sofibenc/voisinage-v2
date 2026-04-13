@@ -6,6 +6,7 @@ import VisitorTab    from './tabs/VisitorTab.jsx';
 import SpotsTab      from './tabs/SpotsTab.jsx';
 import AdminTab      from './tabs/AdminTab.jsx';
 import ProfileModal  from './components/ProfileModal.jsx';
+import WelcomeModal  from './components/WelcomeModal.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // Section accent colors
@@ -16,11 +17,15 @@ export default function App() {
   const { user, member, refreshMember } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
-  const [showProfile, setShowProfile] = useState(false);
+  const [showProfile,  setShowProfile]  = useState(false);
+  const [showWelcome,  setShowWelcome]  = useState(false);
   const [subtitle,         setSubtitle]         = useState('');
   const [operationalMode,  setOperationalModeState] = useState(false);
 
   useEffect(() => { if (!user) setShowProfile(false); }, [user]);
+  useEffect(() => {
+    if (user && !localStorage.getItem('voisinage_welcomed')) setShowWelcome(true);
+  }, [user]);
   useEffect(() => {
     return onSnapshot(settingsDoc(), snap => {
       const data = snap.exists() ? snap.data() : {};
@@ -127,6 +132,9 @@ export default function App() {
 
       {showProfile && member && (
         <ProfileModal member={member} onSaved={refreshMember} onClose={() => setShowProfile(false)} />
+      )}
+      {showWelcome && (
+        <WelcomeModal onClose={() => { localStorage.setItem('voisinage_welcomed', '1'); setShowWelcome(false); }} />
       )}
     </div>
   );
