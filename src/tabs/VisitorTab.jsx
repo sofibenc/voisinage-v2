@@ -36,12 +36,10 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [qStart,    setQStart]    = useState(0);
   const [qEnd,      setQEnd]      = useState(47);
   const [formError,  setFormError]  = useState(null);
-  const [clearError, setClearError] = useState(null);
 
   // Agenda state
   const [agendaView,      setAgendaView]      = useState('Mois');
   const [agendaDay,       setAgendaDay]       = useState(todayDay);
-  const [agendaWeekStart, setAgendaWeekStart] = useState(null);
 
   const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
@@ -119,31 +117,6 @@ export default function VisitorTab({ member, operationalMode = false }) {
     return { state: isMe ? 'mine' : 'other', color, label: nameOf(owner) };
   }, [assignments, colorOf, nameOf, member?.uid]);
 
-  // Clear scope (for current view)
-  function getClearScope() {
-    if (agendaView === 'Jour') {
-      const from = (agendaDay - 1) * SLOTS_PER_DAY;
-      const to   = from + SLOTS_PER_DAY - 1;
-      const has  = Object.entries(assignments).some(([sid, uid]) => {
-        const s = Number(sid); return uid === member?.uid && s >= from && s <= to;
-      });
-      return { label: `Annuler mes réservations du ${agendaDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has, from };
-    }
-    if (agendaView === 'Semaine') {
-      const startDay = agendaWeekStart ?? (() => { const dow = (new Date(year, month, agendaDay).getDay() + 6) % 7; return Math.max(1, agendaDay - dow); })();
-      const endDay   = Math.min(daysInMonth, startDay + 6);
-      const from     = (startDay - 1) * SLOTS_PER_DAY;
-      const to       = (endDay - 1) * SLOTS_PER_DAY + SLOTS_PER_DAY - 1;
-      const has      = Object.entries(assignments).some(([sid, uid]) => {
-        const s = Number(sid); return uid === member?.uid && s >= from && s <= to;
-      });
-      return { label: `Annuler sem. du ${startDay} au ${endDay} ${MONTHS[month]}`, action: () => releaseRange(from, to), has, from };
-    }
-    const hasAny = Object.values(assignments).some(uid => uid === member?.uid);
-    return { label: `Annuler toutes mes réservations de ${MONTHS[month]}`, action: () => releaseRange(0, daysInMonth * SLOTS_PER_DAY - 1), has: hasAny, from: 0 };
-  }
-
-  const clearScope = getClearScope();
 
   return (
     <div>
@@ -285,37 +258,6 @@ export default function VisitorTab({ member, operationalMode = false }) {
         )}
       </div>
 
-      {/* Clear scope button */}
-      {clearError && (
-        <div style={{ marginBottom: 8, background: '#FEF2F2', border: '1px solid #FECACA',
-                      borderRadius: 8, padding: '8px 10px', fontSize: 12, color: '#DC2626' }}>
-          {clearError}
-        </div>
-      )}
-      {clearScope && (
-        <button
-          disabled={!clearScope.has}
-          onClick={async () => {
-            if (operationalMode && !member?.isAdmin) {
-              const cur = currentDaySlotOffset();
-              if (cur >= 0 && clearScope.from < cur) {
-                setClearError('Mode opérationnel : impossible de modifier des créneaux passés.');
-                return;
-              }
-            }
-            if (!window.confirm(clearScope.label + ' ?')) return;
-            setClearError(null);
-            try { await clearScope.action(); }
-            catch (e) { setClearError('Erreur : ' + e.message); }
-          }}
-          style={{ marginBottom: 10, width: '100%', background: 'white',
-                   border: `1px solid ${clearScope.has ? '#FECACA' : '#E2E8F0'}`,
-                   borderRadius: 10, padding: '9px 12px', fontSize: 13,
-                   color: clearScope.has ? '#DC2626' : '#CBD5E1',
-                   fontWeight: 600, cursor: clearScope.has ? 'pointer' : 'default' }}>
-          🗑 {clearScope.label}
-        </button>
-      )}
 
       {/* Calendar */}
       <div style={{ background: 'white', borderRadius: 14, padding: 8,
@@ -325,7 +267,6 @@ export default function VisitorTab({ member, operationalMode = false }) {
           getSlotState={getSlotState}
           controlledView={agendaView} onViewChange={setAgendaView}
           controlledDay={agendaDay}   onDayChange={setAgendaDay}
-          onWeekStartChange={setAgendaWeekStart}
         />
       </div>
     </div>
