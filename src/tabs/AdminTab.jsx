@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { settingsDoc, setSubtitle, setOperationalMode,
          claimReservationRange, releaseReservationRange, reservationDoc,
-         deleteMember, setMemberAdmin, setMemberActive } from '../firebase.js';
+         deleteMember, setMemberAdmin, setMemberActive, upsertMember } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useUsageStats } from '../hooks/useUsageStats.js';
 import AgendaView from '../components/AgendaView/AgendaView.jsx';
@@ -23,6 +23,7 @@ export default function AdminTab({ member }) {
 
   const [subtitle,        setSubtitleInput]  = useState('');
   const [operationalMode, setOperationalModeState] = useState(false);
+  const [editingName,     setEditingName]    = useState(null); // { uid, value }
 
   // Visitor calendar state
   const mk = monthKey(year, month);
@@ -89,7 +90,32 @@ export default function AdminTab({ member }) {
             <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
                            background: m.color.bg }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name || m.uid.slice(0, 8)}</div>
+              {editingName?.uid === m.uid ? (
+                <input
+                  autoFocus
+                  value={editingName.value}
+                  onChange={e => setEditingName({ uid: m.uid, value: e.target.value })}
+                  onKeyDown={async e => {
+                    if (e.key === 'Enter') {
+                      await upsertMember(m.uid, { name: editingName.value.trim() });
+                      setEditingName(null);
+                    } else if (e.key === 'Escape') {
+                      setEditingName(null);
+                    }
+                  }}
+                  onBlur={async () => {
+                    await upsertMember(m.uid, { name: editingName.value.trim() });
+                    setEditingName(null);
+                  }}
+                  style={{ fontSize: 13, fontWeight: 500, border: '1px solid #CBD5E1',
+                           borderRadius: 6, padding: '2px 6px', width: '100%' }}
+                />
+              ) : (
+                <div style={{ fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                  onClick={() => setEditingName({ uid: m.uid, value: m.name || '' })}>
+                  {m.name || m.uid.slice(0, 8)} <span style={{ fontSize: 10, color: '#CBD5E1' }}>✎</span>
+                </div>
+              )}
               {m.email && <div style={{ fontSize: 11, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>}
             </div>
             {/* Active toggle */}
