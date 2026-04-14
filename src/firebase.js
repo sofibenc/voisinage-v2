@@ -43,6 +43,10 @@ export async function setMemberAdmin(uid, isAdmin) {
   await setDoc(memberDoc(uid), { isAdmin }, { merge: true });
 }
 
+export async function setMemberActive(uid, isActive) {
+  await setDoc(memberDoc(uid), { isActive }, { merge: true });
+}
+
 // ── Wishlists ─────────────────────────────────────────────────────────────────
 export const wishlistDoc = (uid, mk) => doc(db, 'wishlists', `${uid}_${mk}`);
 

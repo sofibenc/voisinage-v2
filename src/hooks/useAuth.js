@@ -29,8 +29,10 @@ export function useAuth() {
         const data = snap.exists() ? snap.data() : {};
         // First login: name not yet in Firestore
         if (!data.name) {
-          await upsertMember(firebaseUser.uid, { name: firebaseUser.displayName });
+          await upsertMember(firebaseUser.uid, { name: firebaseUser.displayName, isActive: false });
           data.name = firebaseUser.displayName;
+          data.isActive = false;
+          localStorage.removeItem('voisinage_welcomed');
         }
         setMember({ uid: firebaseUser.uid, ...data });
       } catch (e) {

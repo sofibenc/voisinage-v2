@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { settingsDoc, setSubtitle, setOperationalMode,
          claimReservationRange, releaseReservationRange, reservationDoc,
-         deleteMember, setMemberAdmin } from '../firebase.js';
+         deleteMember, setMemberAdmin, setMemberActive } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useUsageStats } from '../hooks/useUsageStats.js';
 import AgendaView from '../components/AgendaView/AgendaView.jsx';
@@ -88,9 +88,19 @@ export default function AdminTab({ member }) {
                                     padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
                            background: m.color.bg }} />
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>
-              {m.name || m.uid.slice(0, 8)}
-            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500 }}>{m.name || m.uid.slice(0, 8)}</div>
+              {m.email && <div style={{ fontSize: 11, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>}
+            </div>
+            {/* Active toggle */}
+            <button
+              onClick={() => setMemberActive(m.uid, !m.isActive)}
+              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                       borderRadius: 6, cursor: 'pointer',
+                       background: m.isActive ? '#D1FAE5' : '#FEE2E2',
+                       color: m.isActive ? '#065F46' : '#DC2626' }}>
+              {m.isActive ? '✓ Actif' : 'Inactif'}
+            </button>
             {/* Admin toggle */}
             <button
               onClick={() => setMemberAdmin(m.uid, !m.isAdmin)}

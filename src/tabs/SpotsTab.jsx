@@ -129,6 +129,14 @@ export default function SpotsTab({ member, operationalMode = false }) {
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
 
+  const isInactive = member && member.isActive === false && !member.isAdmin;
+  const InactiveBanner = () => isInactive ? (
+    <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 10,
+                  padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#92400E' }}>
+      <strong>Compte inactif</strong> — Votre compte n'est pas encore activé. Contactez un administrateur pour pouvoir effectuer des réservations.
+    </div>
+  ) : null;
+
   const canGoPrev = new Date(year, month) > new Date(2026, 0);
   function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
@@ -208,6 +216,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
 
   async function handleNeighborRangeApply(mode, fromSlot, toSlot, qDay) {
     setNeighborError(null);
+    if (isInactive) { setNeighborError('Compte inactif — contactez un administrateur.'); return; }
     if (isPast(fromSlot)) {
       setNeighborError('Impossible de modifier des créneaux passés.');
       return;
@@ -250,6 +259,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
     <div>
       <MonthNav />
       <BackButton onClick={goBack} />
+      <InactiveBanner />
 
       {/* Range form toggle */}
       <div style={{ marginBottom: 10 }}>
@@ -407,6 +417,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
       <div>
         <MonthNav />
         <BackButton onClick={goBack} />
+        <InactiveBanner />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: ownerColor?.bg }} />
           <div>
@@ -464,6 +475,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
             controlledDay={agendaDay}   onDayChange={setAgendaDay}
             onWeekStartChange={setAgendaWeekStart}
             onSlotClick={sid => {
+              if (isInactive) return;
               if (isPast(sid)) return;
               const day  = Math.floor(sid / SLOTS_PER_DAY) + 1;
               const base = (day - 1) * SLOTS_PER_DAY;
@@ -544,6 +556,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
                 hideDayRange
                 onApply={async (_mode, fromSlot, toSlot, qDay) => {
                   setNeighborError(null);
+                  if (isInactive) { setNeighborError('Compte inactif — contactez un administrateur.'); return; }
                   try {
                     await claimNeighborRange(neighborSpotId, fromSlot, toSlot);
                     setAgendaDay(qDay);
@@ -591,6 +604,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
                 hideDayRange
                 onApply={async (_mode, fromSlot, toSlot, qDay) => {
                   setNeighborError(null);
+                  if (isInactive) { setNeighborError('Compte inactif — contactez un administrateur.'); return; }
                   try {
                     await releaseNeighborRange(neighborSpotId, fromSlot, toSlot);
                     setAgendaDay(qDay);
@@ -613,12 +627,12 @@ export default function SpotsTab({ member, operationalMode = false }) {
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
   // VIEW: main
   // ════════════════════════════════════════════════════════════════════════════
   return (
     <div>
       <MonthNav />
+      <InactiveBanner />
 
       {/* Mes propositions */}
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8',

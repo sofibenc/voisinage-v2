@@ -83,6 +83,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
 
   async function applyForm() {
     setFormError(null);
+    if (isInactive) { setFormError('Compte inactif — contactez un administrateur.'); return; }
     const endDay  = Math.max(qDay, qDayEnd);
     const fromSlot = (qDay - 1) * SLOTS_PER_DAY + qStart;
     const toSlot   = (endDay - 1) * SLOTS_PER_DAY + qEnd;
@@ -124,8 +125,17 @@ export default function VisitorTab({ member, operationalMode = false }) {
   }, [assignments, colorOf, nameOf, member?.uid]);
 
 
+  const isInactive = member && member.isActive === false && !member.isAdmin;
+
   return (
     <div>
+      {/* Inactive account banner */}
+      {isInactive && (
+        <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 10,
+                      padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#92400E' }}>
+          <strong>Compte inactif</strong> — Votre compte n'est pas encore activé. Contactez un administrateur pour pouvoir effectuer des réservations.
+        </div>
+      )}
       {/* Month navigation */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
         <button onClick={prevMonth} disabled={!canGoPrev}
@@ -356,6 +366,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
             onClose={() => { setClickedSlotRange(null); setClickError(null); }}
             onApply={async (fromSlot, toSlot) => {
               setClickError(null);
+              if (isInactive) { setClickError('Compte inactif — contactez un administrateur.'); return; }
               if (operationalMode && !member?.isAdmin) {
                 const cur = currentDaySlotOffset();
                 if (cur >= 0 && fromSlot < cur) {
@@ -387,6 +398,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
             onClose={() => { setCancelSlotRange(null); setClickError(null); }}
             onApply={async (fromSlot, toSlot) => {
               setClickError(null);
+              if (isInactive) { setClickError('Compte inactif — contactez un administrateur.'); return; }
               if (operationalMode && !member?.isAdmin) {
                 const cur = currentDaySlotOffset();
                 if (cur >= 0 && fromSlot < cur) {
