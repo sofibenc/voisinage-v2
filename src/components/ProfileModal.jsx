@@ -45,7 +45,7 @@ export default function ProfileModal({ member, onSaved, onClose }) {
           </button>
         </div>
 
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', marginBottom: 5 }}>Pseudo</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', marginBottom: 5 }}>N° logement</div>
         <input
           value={name}
           onChange={e => setName(e.target.value)}

@@ -30,6 +30,13 @@ export default function WelcomeModal({ onClose }) {
           </Section>
         </div>
 
+        {/* Profile reminder */}
+        <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 12,
+                      padding: '12px 14px', marginBottom: 10, fontSize: 13, color: '#92400E', lineHeight: 1.5 }}>
+          <strong>⚠️ Avant de commencer</strong> — Renseignez votre <strong>N° logement</strong> dans votre profil
+          (icône en haut à droite). Cela permet aux voisins de vous identifier.
+        </div>
+
         {/* Rules */}
         <div style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px',
                       marginBottom: 22, fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
