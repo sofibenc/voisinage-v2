@@ -12,6 +12,8 @@ import { SLOTS_PER_DAY } from '../utils/slots.js';
 function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
 function fmtEnd(s)   { return s === 47 ? '24h00' : fmtStart(s + 1); }
 
+const SUPERADMIN_EMAIL = 'sofibenc@gmail.com';
+
 export default function AdminTab({ member }) {
   const now = new Date();
   const [year, setYear]   = useState(now.getFullYear());
@@ -118,35 +120,41 @@ export default function AdminTab({ member }) {
               )}
               {m.email && <div style={{ fontSize: 11, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>}
             </div>
-            {/* Active toggle */}
-            <button
-              onClick={() => setMemberActive(m.uid, !m.isActive)}
-              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
-                       borderRadius: 6, cursor: 'pointer',
-                       background: m.isActive ? '#D1FAE5' : '#FEE2E2',
-                       color: m.isActive ? '#065F46' : '#DC2626' }}>
-              {m.isActive ? '✓ Actif' : 'Inactif'}
-            </button>
-            {/* Admin toggle */}
-            <button
-              onClick={() => setMemberAdmin(m.uid, !m.isAdmin)}
-              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
-                       borderRadius: 6, cursor: 'pointer',
-                       background: m.isAdmin ? '#1E293B' : '#F1F5F9',
-                       color: m.isAdmin ? 'white' : '#64748B' }}>
-              {m.isAdmin ? '★ Admin' : 'Admin'}
-            </button>
-            {/* Delete */}
-            <button
-              onClick={() => {
-                if (window.confirm(`Supprimer ${m.name || m.uid.slice(0, 8)} ?`))
-                  deleteMember(m.uid);
-              }}
-              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
-                       borderRadius: 6, cursor: 'pointer',
-                       background: '#FEE2E2', color: '#DC2626' }}>
-              ✕
-            </button>
+            {/* Active toggle — masqué pour le superadmin */}
+            {m.email !== SUPERADMIN_EMAIL && (
+              <button
+                onClick={() => setMemberActive(m.uid, !m.isActive)}
+                style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                         borderRadius: 6, cursor: 'pointer',
+                         background: m.isActive ? '#D1FAE5' : '#FEE2E2',
+                         color: m.isActive ? '#065F46' : '#DC2626' }}>
+                {m.isActive ? '✓ Actif' : 'Inactif'}
+              </button>
+            )}
+            {/* Admin toggle — masqué pour le superadmin */}
+            {m.email !== SUPERADMIN_EMAIL && (
+              <button
+                onClick={() => setMemberAdmin(m.uid, !m.isAdmin)}
+                style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                         borderRadius: 6, cursor: 'pointer',
+                         background: m.isAdmin ? '#1E293B' : '#F1F5F9',
+                         color: m.isAdmin ? 'white' : '#64748B' }}>
+                {m.isAdmin ? '★ Admin' : 'Admin'}
+              </button>
+            )}
+            {/* Delete — masqué pour le superadmin */}
+            {m.email !== SUPERADMIN_EMAIL && (
+              <button
+                onClick={() => {
+                  if (window.confirm(`Supprimer ${m.name || m.uid.slice(0, 8)} ?`))
+                    deleteMember(m.uid);
+                }}
+                style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                         borderRadius: 6, cursor: 'pointer',
+                         background: '#FEE2E2', color: '#DC2626' }}>
+                ✕
+              </button>
+            )}
           </div>
         ))}
       </div>
