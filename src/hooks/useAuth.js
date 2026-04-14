@@ -4,8 +4,9 @@ import { getDoc } from 'firebase/firestore';
 import { auth, upsertMember, memberDoc } from '../firebase.js';
 
 export function useAuth() {
-  const [user, setUser]     = useState(undefined); // undefined = loading
-  const [member, setMember] = useState(null);
+  const [user, setUser]           = useState(undefined); // undefined = loading
+  const [member, setMember]       = useState(null);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async firebaseUser => {
@@ -32,7 +33,7 @@ export function useAuth() {
           await upsertMember(firebaseUser.uid, { name: firebaseUser.displayName, isActive: false });
           data.name = firebaseUser.displayName;
           data.isActive = false;
-          localStorage.removeItem('voisinage_welcomed');
+          setIsFirstLogin(true);
         }
         setMember({ uid: firebaseUser.uid, ...data });
       } catch (e) {
@@ -46,5 +47,5 @@ export function useAuth() {
     if (snap.exists()) setMember({ uid, ...snap.data() });
   }, []);
 
-  return { user, member, refreshMember };
+  return { user, member, refreshMember, isFirstLogin };
 }

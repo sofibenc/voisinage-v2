@@ -14,7 +14,7 @@ const VISITOR  = { bg: '#1E293B', light: '#F1F5F9', text: '#1E293B' };
 const MYSPOTS  = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 
 export default function App() {
-  const { user, member, refreshMember } = useAuth();
+  const { user, member, refreshMember, isFirstLogin } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
   const [showProfile,  setShowProfile]  = useState(false);
@@ -24,8 +24,8 @@ export default function App() {
 
   useEffect(() => { if (!user) setShowProfile(false); }, [user]);
   useEffect(() => {
-    if (user && !localStorage.getItem('voisinage_welcomed')) setShowWelcome(true);
-  }, [user]);
+    if (isFirstLogin) setShowWelcome(true);
+  }, [isFirstLogin]);
   useEffect(() => {
     return onSnapshot(settingsDoc(), snap => {
       const data = snap.exists() ? snap.data() : {};
@@ -140,7 +140,7 @@ export default function App() {
         <ProfileModal member={member} onSaved={refreshMember} onClose={() => setShowProfile(false)} />
       )}
       {showWelcome && (
-        <WelcomeModal onClose={() => { localStorage.setItem('voisinage_welcomed', '1'); setShowWelcome(false); }} />
+        <WelcomeModal onClose={() => setShowWelcome(false)} />
       )}
     </div>
   );
