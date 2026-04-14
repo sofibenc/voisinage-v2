@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { settingsDoc, setSubtitle, setOperationalMode,
-         claimReservationRange, releaseReservationRange, reservationDoc } from '../firebase.js';
+         claimReservationRange, releaseReservationRange, reservationDoc,
+         deleteMember, setMemberAdmin } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
 import { useUsageStats } from '../hooks/useUsageStats.js';
 import AgendaView from '../components/AgendaView/AgendaView.jsx';
@@ -73,6 +74,45 @@ export default function AdminTab({ member }) {
             OK
           </button>
         </div>
+      </div>
+
+      {/* Member management */}
+      <div style={{ background: 'white', borderRadius: 14, padding: 16,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>GESTION DES MEMBRES</div>
+        {members.length === 0 && (
+          <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center' }}>Aucun membre.</div>
+        )}
+        {members.map(m => (
+          <div key={m.uid} style={{ display: 'flex', alignItems: 'center', gap: 8,
+                                    padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                           background: m.color.bg }} />
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>
+              {m.name || m.uid.slice(0, 8)}
+            </span>
+            {/* Admin toggle */}
+            <button
+              onClick={() => setMemberAdmin(m.uid, !m.isAdmin)}
+              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                       borderRadius: 6, cursor: 'pointer',
+                       background: m.isAdmin ? '#1E293B' : '#F1F5F9',
+                       color: m.isAdmin ? 'white' : '#64748B' }}>
+              {m.isAdmin ? '★ Admin' : 'Admin'}
+            </button>
+            {/* Delete */}
+            <button
+              onClick={() => {
+                if (window.confirm(`Supprimer ${m.name || m.uid.slice(0, 8)} ?`))
+                  deleteMember(m.uid);
+              }}
+              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
+                       borderRadius: 6, cursor: 'pointer',
+                       background: '#FEE2E2', color: '#DC2626' }}>
+              ✕
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Operational mode toggle */}

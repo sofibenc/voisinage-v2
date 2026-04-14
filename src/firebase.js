@@ -35,6 +35,14 @@ export async function upsertMember(uid, data) {
   await setDoc(memberDoc(uid), data, { merge: true });
 }
 
+export async function deleteMember(uid) {
+  await deleteDoc(memberDoc(uid));
+}
+
+export async function setMemberAdmin(uid, isAdmin) {
+  await setDoc(memberDoc(uid), { isAdmin }, { merge: true });
+}
+
 // ── Wishlists ─────────────────────────────────────────────────────────────────
 export const wishlistDoc = (uid, mk) => doc(db, 'wishlists', `${uid}_${mk}`);
 
