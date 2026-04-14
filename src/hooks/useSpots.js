@@ -7,21 +7,30 @@ export function useSpots(uid, year, month) {
   const mk = monthKey(year, month);
   const [spots, setSpots] = useState([]);
   const [availability, setAvailability] = useState({}); // spotId → { slots, taken }
+  const [loading, setLoading] = useState(true);
+  const [availLoading, setAvailLoading] = useState(true);
 
   useEffect(() => {
     return onSnapshot(spotsCol(), snap => {
-      setSpots(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setSpots(list);
+      if (list.length === 0) setAvailLoading(false);
+      setLoading(false);
     });
   }, []);
 
   useEffect(() => {
     if (!spots.length) return;
+    setAvailLoading(true);
+    let received = 0;
     const unsubs = spots.map(spot =>
       onSnapshot(spotAvailDoc(spot.id, mk), snap => {
         setAvailability(prev => ({
           ...prev,
           [spot.id]: snap.exists() ? snap.data() : { slots: [], taken: {} },
         }));
+        received++;
+        if (received >= spots.length) setAvailLoading(false);
       })
     );
     return () => unsubs.forEach(u => u());
@@ -68,5 +77,5 @@ export function useSpots(uid, year, month) {
     await releaseSpotSlotRange(spotId, mk, fromSlot, toSlot, uid);
   }
 
-  return { spots, mySpot, otherSpots, availability, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange };
+  return { spots, mySpot, otherSpots, availability, loading: loading || availLoading, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange };
 }

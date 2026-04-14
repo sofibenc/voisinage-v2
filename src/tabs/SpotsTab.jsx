@@ -111,7 +111,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
   const mk = monthKey(year, month);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const { mySpot, otherSpots, availability, ensureMySpot, mergeMySlots, clearMyRange, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
+  const { mySpot, otherSpots, availability, loading: spotsLoading, ensureMySpot, mergeMySlots, clearMyRange, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
   const { colorOf, members } = useMembers();
 
   // view: 'main' | 'myspot' | 'neighbor'
@@ -664,7 +664,12 @@ export default function SpotsTab({ member, operationalMode = false }) {
         PLACES DISPONIBLES
       </div>
 
-      {visibleOtherSpots.length === 0 ? (
+      {spotsLoading ? (
+        <div style={{ background: '#F8FAFC', borderRadius: 12, padding: 20,
+                      textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
+          Chargement…
+        </div>
+      ) : visibleOtherSpots.length === 0 ? (
         <div style={{ background: '#F8FAFC', borderRadius: 12, padding: 20,
                       textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>
           Aucune place disponible ce mois-ci.
