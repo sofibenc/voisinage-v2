@@ -139,6 +139,9 @@ export async function claimSpotSlot(spotId, mk, slotId, uid) {
     if (!data.slots.includes(slotId)) throw new Error('Slot not available');
     if (data.taken?.[String(slotId)]) throw new Error('Already taken');
     tx.update(ref, { [`taken.${slotId}`]: uid });
+    if (data.ownerUid && uid !== data.ownerUid) {
+      tx.update(spotDoc(spotId), { unreadClaims: increment(1) });
+    }
   });
 }
 
