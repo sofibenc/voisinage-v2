@@ -4,8 +4,8 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore, doc, collection,
-  setDoc, deleteDoc,
-  runTransaction, deleteField,
+  setDoc, updateDoc, deleteDoc,
+  runTransaction, deleteField, increment,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -170,4 +170,8 @@ export async function releaseSpotSlotRange(spotId, mk, fromSlot, toSlot, uid) {
     }
     if (Object.keys(updates).length > 0) tx.update(ref, updates);
   });
+}
+
+export async function clearSpotUnread(spotId) {
+  await updateDoc(spotDoc(spotId), { unreadClaims: 0 });
 }
