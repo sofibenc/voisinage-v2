@@ -3,8 +3,6 @@ import { DAYS_FR } from '../../constants.js';
 
 /**
  * MonthView: calendar grid. Each DayCell shows the dominant color for that day.
- * In wish mode: shows how many hours the user selected.
- * In planning mode: shows which member is assigned most that day.
  *
  * Props:
  *   year, month
