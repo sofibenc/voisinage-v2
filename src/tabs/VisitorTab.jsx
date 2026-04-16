@@ -173,7 +173,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
                 <span style={{ textAlign: 'right' }}>M-1</span>
                 <span style={{ textAlign: 'right' }}>+7J</span>
               </div>
-              {stats.map(s => (
+              {stats.filter(s => s.isActive).map(s => (
                 <div key={s.uid} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 44px 44px',
                                           padding: '8px 12px', fontSize: 13,
                                           borderTop: '1px solid #F8FAFC',

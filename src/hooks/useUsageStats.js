@@ -64,6 +64,7 @@ export function useUsageStats(members, year, month) {
     uid:           m.uid,
     name:          m.name,
     color:         m.color,
+    isActive:      m.isActive,
     monthPastHours:  (monthPastByUid[m.uid] ?? 0) / 2,
     lastMonthHours:  (lastMonthByUid[m.uid] ?? 0) / 2,
     next7Hours:      (next7ByUid[m.uid] ?? 0) / 2,
