@@ -157,7 +157,12 @@ export async function claimSpotSlotRange(spotId, mk, fromSlot, toSlot, uid) {
       if (data.taken?.[String(s)] && data.taken[String(s)] !== uid) throw new Error('OVERLAP');
       if (!data.taken?.[String(s)]) updates[`taken.${s}`] = uid;
     }
-    if (Object.keys(updates).length > 0) tx.update(ref, updates);
+    if (Object.keys(updates).length > 0) {
+      tx.update(ref, updates);
+      if (data.ownerUid && uid !== data.ownerUid) {
+        tx.update(spotDoc(spotId), { unreadClaims: increment(1) });
+      }
+    }
   });
 }
 
