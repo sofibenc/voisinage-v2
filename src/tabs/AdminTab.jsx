@@ -12,7 +12,7 @@ import { SLOTS_PER_DAY } from '../utils/slots.js';
 function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
 function fmtEnd(s)   { return s === 47 ? '24h00' : fmtStart(s + 1); }
 
-const SUPERADMIN_EMAIL = 'sofibenc@gmail.com';
+const SUPERADMIN_EMAIL = import.meta.env.VITE_SUPERADMIN_EMAIL;
 
 export default function AdminTab({ member }) {
   const now = new Date();
