@@ -16,26 +16,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    match /wishlists/{docId} {
-      allow read: if isAuth();
-      allow write: if isAuth()
-        && request.auth.uid == request.resource.data.uid
-        && !exists(/databases/$(database)/documents/schedules/$(request.resource.data.monthKey));
-      allow delete: if isAuth() && request.auth.uid == resource.data.uid;
-    }
-
-    match /schedules/{monthKey} {
-      allow read:   if isAuth();
-      allow create: if isAuth();   // any client can publish (idempotent transaction)
-      allow update: if isAuth();   // release / claim
-      allow delete: if isAdmin();
-    }
-
-    match /prevUsage/{monthKey} {
-      allow read:  if isAuth();
-      allow write: if isAuth();
-    }
-
     match /settings/{docId} {
       allow read:  if isAuth();
       allow write: if isAdmin();
@@ -44,7 +24,10 @@ service cloud.firestore {
     match /spots/{spotId} {
       allow read:   if isAuth();
       allow create: if isAuth() && request.auth.uid == request.resource.data.ownerUid;
-      allow update: if isAuth() && resource.data.ownerUid == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.ownerUid == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadClaims'])
+      );
       allow delete: if isAuth() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
 
