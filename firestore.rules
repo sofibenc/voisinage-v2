@@ -26,7 +26,8 @@ service cloud.firestore {
       allow create: if isAuth() && request.auth.uid == request.resource.data.ownerUid;
       allow update: if isAuth() && (
         resource.data.ownerUid == request.auth.uid ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadClaims'])
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unreadClaims']) &&
+         request.resource.data.unreadClaims > resource.data.get('unreadClaims', 0))
       );
       allow delete: if isAuth() && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }

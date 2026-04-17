@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { upsertMember } from '../firebase.js';
 import { logout } from '../firebase.js';
 
-export default function ProfileModal({ member, onSaved, onClose }) {
+export default function ProfileModal({ member, onClose }) {
   const [name,        setName]        = useState(member?.name ?? '');
   const [spotNumber,  setSpotNumber]  = useState(member?.spotNumber ?? '');
   const [saving,      setSaving]      = useState(false);
@@ -12,7 +12,6 @@ export default function ProfileModal({ member, onSaved, onClose }) {
     setSaving(true);
     try {
       await upsertMember(member.uid, { name: name.trim(), spotNumber: spotNumber.trim() });
-      await onSaved(member.uid);
       onClose();
     } finally {
       setSaving(false);

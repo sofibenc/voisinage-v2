@@ -15,7 +15,7 @@ const VISITOR  = { bg: '#1E293B', light: '#F1F5F9', text: '#1E293B' };
 const MYSPOTS  = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 
 export default function App() {
-  const { user, member, refreshMember, isFirstLogin } = useAuth();
+  const { user, member, isFirstLogin } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
   const [showProfile,  setShowProfile]  = useState(false);
@@ -162,7 +162,7 @@ export default function App() {
       </div>
 
       {showProfile && member && (
-        <ProfileModal member={member} onSaved={refreshMember} onClose={() => setShowProfile(false)} />
+        <ProfileModal member={member} onClose={() => setShowProfile(false)} />
       )}
       {showWelcome && (
         <WelcomeModal onClose={() => setShowWelcome(false)} />

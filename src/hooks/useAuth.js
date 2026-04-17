@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, upsertMember, memberDoc } from '../firebase.js';
@@ -47,10 +47,5 @@ export function useAuth() {
     };
   }, []);
 
-  const refreshMember = useCallback(async (uid) => {
-    const snap = await getDoc(memberDoc(uid));
-    if (snap.exists()) setMember({ uid, ...snap.data() });
-  }, []);
-
-  return { user, member, refreshMember, isFirstLogin };
+  return { user, member, isFirstLogin };
 }

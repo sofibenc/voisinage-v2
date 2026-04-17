@@ -56,8 +56,12 @@ export default function AdminTab({ member }) {
     });
   }, []);
 
-  function prevMonth() { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); }
-  function nextMonth() { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); }
+  const minDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const canGoPrev = new Date(year, month) > minDate;
+  const canGoNext = new Date(year, month + 1) < maxDate;
+  function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); }
+  function nextMonth() { if (!canGoNext) return; if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); }
 
   return (
     <div>
@@ -246,13 +250,13 @@ export default function AdminTab({ member }) {
       <div style={{ background: 'white', borderRadius: 14, padding: 16,
                     boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <button onClick={prevMonth}
-            style={{ border: 'none', background: 'none', fontSize: 20, color: '#1E293B' }}>‹</button>
+          <button onClick={prevMonth} disabled={!canGoPrev}
+            style={{ border: 'none', background: 'none', fontSize: 20, color: canGoPrev ? '#1E293B' : '#CBD5E1' }}>‹</button>
           <span style={{ flex: 1, textAlign: 'center', fontWeight: 700, fontSize: 15 }}>
             {MONTHS[month]} {year}
           </span>
-          <button onClick={nextMonth}
-            style={{ border: 'none', background: 'none', fontSize: 20, color: '#1E293B' }}>›</button>
+          <button onClick={nextMonth} disabled={!canGoNext}
+            style={{ border: 'none', background: 'none', fontSize: 20, color: canGoNext ? '#1E293B' : '#CBD5E1' }}>›</button>
         </div>
         <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>
           CONSOMMATION VOISINS
