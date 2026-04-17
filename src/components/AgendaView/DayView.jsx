@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { SLOTS_PER_DAY } from '../../utils/slots.js';
 import SlotRow from './SlotRow.jsx';
 
@@ -16,6 +17,11 @@ export default function DayView({
   onSlotPointerDown, onSlotPointerEnter, onSlotPointerUp, onSlotClick,
   interactive = false,
 }) {
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 12 * 20; // 6h = slot 12, hauteur 20px
+  }, [day]);
+
   const base = (day - 1) * SLOTS_PER_DAY;
   const rows = [];
 
@@ -41,7 +47,7 @@ export default function DayView({
   }
 
   return (
-    <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+    <div ref={scrollRef} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
       {rows}
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SLOTS_PER_DAY } from '../../utils/slots.js';
 import { DAYS_FR } from '../../constants.js';
 
@@ -24,6 +24,10 @@ export default function WeekView({
   const initialStart = Math.max(1, todayDay - dow);
 
   const [startDay, setStartDay] = useState(initialStart);
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 12 * 14; // 6h = slot 12, hauteur 14px
+  }, [startDay]);
 
   // Navigate to the week containing targetDay when it changes
   useEffect(() => {
@@ -68,7 +72,7 @@ export default function WeekView({
       </div>
 
       {/* Grid: gutter + one column per day */}
-      <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 240px)', display: 'flex' }}>
+      <div ref={scrollRef} style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 240px)', display: 'flex' }}>
 
         {/* Hour gutter */}
         <div style={{ width: 32, flexShrink: 0 }}>
