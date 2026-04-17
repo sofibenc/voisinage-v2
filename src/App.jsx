@@ -8,6 +8,7 @@ import AdminTab      from './tabs/AdminTab.jsx';
 import ProfileModal  from './components/ProfileModal.jsx';
 import WelcomeModal  from './components/WelcomeModal.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { useNotificationBadges } from './hooks/useNotificationBadges.js';
 
 // Section accent colors
 const VISITOR  = { bg: '#1E293B', light: '#F1F5F9', text: '#1E293B' };
@@ -21,6 +22,10 @@ export default function App() {
   const [showWelcome,  setShowWelcome]  = useState(false);
   const [subtitle,         setSubtitle]         = useState('');
   const [operationalMode,  setOperationalModeState] = useState(false);
+  const { spotsBadge, adminBadge, clearSpotBadge } = useNotificationBadges(
+    user?.uid ?? null,
+    member?.isAdmin ?? false,
+  );
 
   useEffect(() => { if (!user) setShowProfile(false); }, [user]);
   useEffect(() => {
@@ -79,13 +84,23 @@ export default function App() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {member?.isAdmin && (
-            <button onClick={() => setSection('admin')}
-              style={{ background: section === 'admin' ? '#1E293B' : '#F1F5F9',
-                       color: section === 'admin' ? 'white' : '#64748B',
-                       border: 'none', borderRadius: 8, padding: '5px 10px',
-                       fontSize: 12, fontWeight: 600 }}>
-              ⚙️
-            </button>
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              <button onClick={() => setSection('admin')}
+                style={{ background: section === 'admin' ? '#1E293B' : '#F1F5F9',
+                         color: section === 'admin' ? 'white' : '#64748B',
+                         border: 'none', borderRadius: 8, padding: '5px 10px',
+                         fontSize: 12, fontWeight: 600 }}>
+                ⚙️
+              </button>
+              {adminBadge > 0 && (
+                <span style={{
+                  position: 'absolute', top: -3, right: -3,
+                  width: 10, height: 10, borderRadius: '50%',
+                  background: '#DC2626', border: '2px solid white',
+                  pointerEvents: 'none',
+                }} />
+              )}
+            </div>
           )}
           <button onClick={() => setShowWelcome(true)}
             style={{ background: '#F1F5F9', border: 'none', borderRadius: 8,
@@ -118,13 +133,23 @@ export default function App() {
                    color: section === 'visitor' ? 'white' : VISITOR.text }}>
           🏢 Place visiteur
         </button>
-        <button onClick={() => setSection('myspots')}
-          style={{ flex: 1, padding: '10px 8px', fontSize: 13, fontWeight: 700,
-                   border: 'none', borderRadius: 10,
-                   background: section === 'myspots' ? MYSPOTS.bg : MYSPOTS.light,
-                   color: section === 'myspots' ? 'white' : MYSPOTS.text }}>
-          🔑 Place Voisin
-        </button>
+        <div style={{ flex: 1, position: 'relative', display: 'inline-flex' }}>
+          <button onClick={() => { setSection('myspots'); clearSpotBadge(); }}
+            style={{ flex: 1, width: '100%', padding: '10px 8px', fontSize: 13, fontWeight: 700,
+                     border: 'none', borderRadius: 10,
+                     background: section === 'myspots' ? MYSPOTS.bg : MYSPOTS.light,
+                     color: section === 'myspots' ? 'white' : MYSPOTS.text }}>
+            🔑 Place Voisin
+          </button>
+          {spotsBadge > 0 && (
+            <span style={{
+              position: 'absolute', top: -3, right: -3,
+              width: 10, height: 10, borderRadius: '50%',
+              background: '#DC2626', border: '2px solid white',
+              pointerEvents: 'none',
+            }} />
+          )}
+        </div>
       </div>
 
       {/* ── Content ── */}
