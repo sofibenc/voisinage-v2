@@ -123,7 +123,10 @@ export default function AdminTab({ member }) {
             {/* Active toggle — masqué pour le superadmin */}
             {m.email !== SUPERADMIN_EMAIL && (
               <button
-                onClick={() => setMemberActive(m.uid, !m.isActive)}
+                onClick={() => {
+                  if (m.isActive && !window.confirm(`Désactiver ${m.name || m.uid.slice(0, 8)} ?`)) return;
+                  setMemberActive(m.uid, !m.isActive);
+                }}
                 style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
                          borderRadius: 6, cursor: 'pointer',
                          background: m.isActive ? '#D1FAE5' : '#FEE2E2',
@@ -134,7 +137,10 @@ export default function AdminTab({ member }) {
             {/* Admin toggle — masqué pour le superadmin */}
             {m.email !== SUPERADMIN_EMAIL && (
               <button
-                onClick={() => setMemberAdmin(m.uid, !m.isAdmin)}
+                onClick={() => {
+                  if (m.isAdmin && !window.confirm(`Révoquer les droits admin de ${m.name || m.uid.slice(0, 8)} ?`)) return;
+                  setMemberAdmin(m.uid, !m.isAdmin);
+                }}
                 style={{ padding: '4px 10px', fontSize: 11, fontWeight: 700, border: 'none',
                          borderRadius: 6, cursor: 'pointer',
                          background: m.isAdmin ? '#1E293B' : '#F1F5F9',

@@ -137,7 +137,8 @@ export default function SpotsTab({ member, operationalMode = false }) {
     </div>
   ) : null;
 
-  const canGoPrev = new Date(year, month) > new Date(2026, 0);
+  const minDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+  const canGoPrev = new Date(year, month) > minDate;
   function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y-1); setMonth(11); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 11) { setYear(y => y+1); setMonth(0); } else setMonth(m => m+1); }
 
