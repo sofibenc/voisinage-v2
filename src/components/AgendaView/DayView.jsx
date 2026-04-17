@@ -19,7 +19,7 @@ export default function DayView({
 }) {
   const scrollRef = useRef(null);
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 12 * 20; // 6h = slot 12, hauteur 20px
+    if (scrollRef.current) scrollRef.current.scrollTop = 24 * 20; // 12h = slot 24, hauteur 20px
   }, [day]);
 
   const base = (day - 1) * SLOTS_PER_DAY;
