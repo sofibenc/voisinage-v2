@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { getDoc } from 'firebase/firestore';
+import { getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, upsertMember, memberDoc } from '../firebase.js';
 
 export function useAuth() {
@@ -9,37 +9,42 @@ export function useAuth() {
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, async firebaseUser => {
+    let unsubMember = null;
+
+    const unsubAuth = onAuthStateChanged(auth, async firebaseUser => {
+      // Clean up previous member listener on auth change
+      if (unsubMember) { unsubMember(); unsubMember = null; }
+
       if (!firebaseUser) { setUser(null); setMember(null); return; }
       setUser(firebaseUser);
-      const fallback = {
-        uid:      firebaseUser.uid,
-        name:     firebaseUser.displayName,
-        email:    firebaseUser.email,
-        photoURL: firebaseUser.photoURL,
-        isAdmin:  false,
-      };
-      setMember(fallback);
+
       try {
         // Always sync email + photoURL. Only set name on first login (don't overwrite custom pseudo).
         await upsertMember(firebaseUser.uid, {
           email:    firebaseUser.email,
           photoURL: firebaseUser.photoURL,
         });
+        // First login: name not yet in Firestore
         const snap = await getDoc(memberDoc(firebaseUser.uid));
         const data = snap.exists() ? snap.data() : {};
-        // First login: name not yet in Firestore
         if (!data.name) {
           await upsertMember(firebaseUser.uid, { name: firebaseUser.displayName, isActive: false });
-          data.name = firebaseUser.displayName;
-          data.isActive = false;
           setIsFirstLogin(true);
         }
-        setMember({ uid: firebaseUser.uid, ...data });
       } catch (e) {
         console.error('Firestore member sync failed:', e);
       }
+
+      // Real-time listener: keeps member in sync when admin changes isActive, isAdmin, etc.
+      unsubMember = onSnapshot(memberDoc(firebaseUser.uid), snap => {
+        if (snap.exists()) setMember({ uid: firebaseUser.uid, ...snap.data() });
+      });
     });
+
+    return () => {
+      unsubAuth();
+      if (unsubMember) unsubMember();
+    };
   }, []);
 
   const refreshMember = useCallback(async (uid) => {
