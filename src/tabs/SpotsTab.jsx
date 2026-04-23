@@ -128,6 +128,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
   const [showNeighborForm, setShowNeighborForm]  = useState(false);
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
+  const [mySpotError,      setMySpotError]       = useState(null);
 
   const isInactive = member && member.isActive === false && !member.isAdmin;
   const InactiveBanner = () => isInactive ? (
@@ -187,7 +188,11 @@ export default function SpotsTab({ member, operationalMode = false }) {
 
   // ── Handle range apply (my spot) ─────────────────────────────────────────
   async function handleRangeApply(mode, fromSlot, toSlot, qDay) {
-    if (isPast(fromSlot)) return; // silently ignore — UI shouldn't allow it
+    setMySpotError(null);
+    if (isPast(fromSlot)) {
+      setMySpotError('Impossible de modifier des créneaux passés.');
+      return;
+    }
     const spotId = mySpot?.id ?? await ensureMySpot(`Place de ${member?.name ?? 'moi'}`);
     if (mode === 'add') await mergeMySlots(spotId, buildSlotList(fromSlot, toSlot));
     else await clearMyRange(spotId, fromSlot, toSlot);
@@ -264,7 +269,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
 
       {/* Range form toggle */}
       <div style={{ marginBottom: 10 }}>
-        <button onClick={() => setShowRangeForm(v => !v)}
+        <button onClick={() => { setShowRangeForm(v => !v); setMySpotError(null); }}
           style={{ width: '100%', background: 'white', border: '1px solid #E2E8F0',
                    borderRadius: showRangeForm ? '10px 10px 0 0' : 10,
                    padding: '9px 12px', fontSize: 13, color: '#475569',
@@ -274,12 +279,19 @@ export default function SpotsTab({ member, operationalMode = false }) {
         </button>
         {showRangeForm && (
           <div style={{ background: 'white', border: '1px solid #E2E8F0', borderTop: 'none',
-                        borderRadius: '0 0 10px 10px', padding: '12px 12px 14px' }}>
+                        borderRadius: '0 0 10px 10px', padding: '12px 12px 14px',
+                        display: 'flex', flexDirection: 'column', gap: 10 }}>
             <RangeForm
               daysInMonth={daysInMonth} month={month}
               accentBg={AMBER.bg}
               onApply={handleRangeApply}
             />
+            {mySpotError && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
+                            padding: '8px 10px', fontSize: 12, color: '#DC2626' }}>
+                ⚠️ {mySpotError}
+              </div>
+            )}
           </div>
         )}
       </div>
