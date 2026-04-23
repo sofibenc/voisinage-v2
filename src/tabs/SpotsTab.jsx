@@ -424,7 +424,7 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
                         maxWidth: 340, width: '100%' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
-              Tu n'as pas de N° de place
+              Le N° de place n'est pas renseigné.
             </div>
             <div style={{ fontSize: 13, color: '#64748B', marginBottom: 18, lineHeight: 1.5 }}>
               Les voisins ne verront pas ton numéro de place. Ils auront du mal à te trouver.
