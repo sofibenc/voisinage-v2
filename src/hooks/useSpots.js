@@ -36,7 +36,9 @@ export function useSpots(uid, year, month) {
     return () => unsubs.forEach(u => u());
   }, [spots, mk]);
 
-  const mySpot    = spots.find(s => s.ownerUid === uid) ?? null;
+  const mySpots    = spots.filter(s => s.ownerUid === uid);
+  const mySpot     = mySpots[0] ?? null;
+  const ghostSpots = mySpots.slice(1); // spots supplémentaires avec le même ownerUid
   const otherSpots = spots.filter(s => s.ownerUid !== uid);
 
   // Ensure my spot exists (called on first "Proposer ma place")
@@ -77,5 +79,5 @@ export function useSpots(uid, year, month) {
     await releaseSpotSlotRange(spotId, mk, fromSlot, toSlot, uid);
   }
 
-  return { spots, mySpot, otherSpots, availability, loading: loading || availLoading, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange };
+  return { spots, mySpot, ghostSpots, otherSpots, availability, loading: loading || availLoading, ensureMySpot, mergeMySlots, clearMyRange, claimSlot, claimNeighborRange, releaseNeighborRange };
 }

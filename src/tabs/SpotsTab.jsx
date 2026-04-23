@@ -111,7 +111,7 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
   const mk = monthKey(year, month);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const { mySpot, otherSpots, availability, loading: spotsLoading, ensureMySpot, mergeMySlots, clearMyRange, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
+  const { mySpot, ghostSpots, otherSpots, availability, loading: spotsLoading, ensureMySpot, mergeMySlots, clearMyRange, claimNeighborRange, releaseNeighborRange } = useSpots(member?.uid, year, month);
   const { colorOf, members } = useMembers();
 
   // view: 'main' | 'myspot' | 'neighbor'
@@ -173,7 +173,7 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
   const neighborAvail = neighborSpotId ? (availability[neighborSpotId] ?? { slots: [], taken: {} }) : null;
 
   const neighborOwnerColor = neighborSpotId
-    ? colorOf(otherSpots.find(s => s.id === neighborSpotId)?.ownerUid)
+    ? colorOf((otherSpots.find(s => s.id === neighborSpotId) ?? ghostSpots.find(s => s.id === neighborSpotId))?.ownerUid)
     : null;
 
   const getNeighborSlotState = useCallback(sid => {
@@ -476,7 +476,7 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
   // VIEW: neighbor spot
   // ════════════════════════════════════════════════════════════════════════════
   if (view === 'neighbor') {
-    const spot = otherSpots.find(s => s.id === neighborSpotId);
+    const spot = otherSpots.find(s => s.id === neighborSpotId) ?? ghostSpots.find(s => s.id === neighborSpotId);
     const owner = members.find(m => m.uid === spot?.ownerUid);
     const ownerColor = colorOf(spot?.ownerUid);
     return (
@@ -723,6 +723,31 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
         </div>
         <span style={{ color: '#94A3B8' }}>›</span>
       </button>
+
+      {/* Places fantômes (spots supplémentaires avec le même ownerUid) */}
+      {ghostSpots.length > 0 && ghostSpots.map(ghost => {
+        const ghostAvail = availability[ghost.id] ?? { slots: [], taken: {} };
+        const ghostSlotCount = ghostAvail.slots?.length ?? 0;
+        return (
+          <button key={ghost.id}
+            onClick={() => { setNeighborSpotId(ghost.id); setView('neighbor'); }}
+            style={{ width: '100%', background: '#FEF3C7', border: '1px solid #F59E0B',
+                     borderRadius: 12, padding: '12px 16px', fontSize: 14,
+                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                     marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>⚠️</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, color: AMBER.text }}>Place fantôme ({ghost.id.slice(0, 6)}…)</div>
+                <div style={{ fontSize: 12, color: '#92400E', marginTop: 1 }}>
+                  {ghostSlotCount > 0 ? `${ghostSlotCount / 2}h proposées — à supprimer` : 'Aucune disponibilité ce mois'}
+                </div>
+              </div>
+            </div>
+            <span style={{ color: '#92400E' }}>›</span>
+          </button>
+        );
+      })}
 
       {/* Places disponibles */}
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8',
