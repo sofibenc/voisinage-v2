@@ -81,12 +81,12 @@ export default function App() {
       {/* ── Bandeau mise à jour disponible ── */}
       {needRefresh && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-                      background: '#1E293B', color: 'white',
+                      background: '#2563EB', color: 'white',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       gap: 12, padding: '10px 16px', fontSize: 13 }}>
           <span>Nouvelle version disponible</span>
           <button onClick={() => updateServiceWorker(true)}
-            style={{ background: 'white', color: '#1E293B', border: 'none',
+            style={{ background: 'white', color: '#2563EB', border: 'none',
                      borderRadius: 6, padding: '5px 12px', fontSize: 13,
                      fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
             Recharger
