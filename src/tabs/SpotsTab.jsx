@@ -363,6 +363,11 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
               defaultEnd={myAddSlotRange.endSlot}
               hideDayRange
               onApply={async (_mode, fromSlot, toSlot, qDay) => {
+                if (!member?.spotNumber?.trim()) {
+                  setMyAddSlotRange(null);
+                  setPendingRange({ mode: 'add', fromSlot, toSlot, qDay });
+                  return;
+                }
                 const spotId = mySpot?.id ?? await ensureMySpot(`Place de ${member?.name ?? 'moi'}`);
                 await mergeMySlots(spotId, buildSlotList(fromSlot, toSlot));
                 setAgendaDay(qDay);
