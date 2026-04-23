@@ -8,7 +8,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
+  navigator.serviceWorker.ready.then(registration => {
+    // Vérifie une mise à jour dès que l'app redevient visible (retour sur l'onglet/app)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') registration.update();
+    });
   });
 }

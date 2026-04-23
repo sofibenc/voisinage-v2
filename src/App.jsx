@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { useAuth } from './hooks/useAuth.js';
 import { loginWithGoogle, settingsDoc } from './firebase.js';
 import { onSnapshot } from 'firebase/firestore';
@@ -15,6 +16,7 @@ const VISITOR  = { bg: '#1E293B', light: '#F1F5F9', text: '#1E293B' };
 const MYSPOTS  = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 
 export default function App() {
+  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
   const { user, member, isFirstLogin } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
@@ -70,6 +72,22 @@ export default function App() {
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh',
                   display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+
+      {/* ── Bandeau mise à jour disponible ── */}
+      {needRefresh && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+                      background: '#1E293B', color: 'white',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: 12, padding: '10px 16px', fontSize: 13 }}>
+          <span>Nouvelle version disponible</span>
+          <button onClick={() => updateServiceWorker(true)}
+            style={{ background: 'white', color: '#1E293B', border: 'none',
+                     borderRadius: 6, padding: '5px 12px', fontSize: 13,
+                     fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+            Recharger
+          </button>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center',
