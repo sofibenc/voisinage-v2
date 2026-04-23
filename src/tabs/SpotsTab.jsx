@@ -104,7 +104,7 @@ function BackButton({ onClick }) {
 }
 
 // ── Main component ───────────────────────────────────────────────────────────
-export default function SpotsTab({ member, operationalMode = false }) {
+export default function SpotsTab({ member, operationalMode = false, onOpenProfile }) {
   const now = new Date();
   const [year, setYear]   = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -129,6 +129,7 @@ export default function SpotsTab({ member, operationalMode = false }) {
   const [neighborFormKey,  setNeighborFormKey]   = useState(0);
   const [neighborError,    setNeighborError]     = useState(null);
   const [mySpotError,      setMySpotError]       = useState(null);
+  const [pendingRange,     setPendingRange]      = useState(null);
 
   const isInactive = member && member.isActive === false && !member.isAdmin;
   const InactiveBanner = () => isInactive ? (
@@ -193,6 +194,14 @@ export default function SpotsTab({ member, operationalMode = false }) {
       setMySpotError('Impossible de modifier des créneaux passés.');
       return;
     }
+    if (mode === 'add' && !member?.spotNumber?.trim()) {
+      setPendingRange({ mode, fromSlot, toSlot, qDay });
+      return;
+    }
+    await executeRangeApply(mode, fromSlot, toSlot, qDay);
+  }
+
+  async function executeRangeApply(mode, fromSlot, toSlot, qDay) {
     const spotId = mySpot?.id ?? await ensureMySpot(`Place de ${member?.name ?? 'moi'}`);
     if (mode === 'add') await mergeMySlots(spotId, buildSlotList(fromSlot, toSlot));
     else await clearMyRange(spotId, fromSlot, toSlot);
