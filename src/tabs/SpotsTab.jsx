@@ -409,6 +409,45 @@ export default function SpotsTab({ member, operationalMode = false, onOpenProfil
         </div>
       )}
 
+      {/* Popup avertissement numéro de place manquant */}
+      {pendingRange !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+                      zIndex: 50, display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', padding: 20 }}
+          onClick={() => setPendingRange(null)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 20,
+                        maxWidth: 340, width: '100%' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
+              Tu n'as pas de N° de place
+            </div>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 18, lineHeight: 1.5 }}>
+              Les voisins ne verront pas ton numéro de place. Ils auront du mal à te trouver.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button
+                onClick={() => { setPendingRange(null); onOpenProfile?.(); }}
+                style={{ width: '100%', padding: '11px 0', background: '#0F172A', color: 'white',
+                         border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                         cursor: 'pointer' }}>
+                Renseigner mon N°
+              </button>
+              <button
+                onClick={async () => {
+                  const { mode, fromSlot, toSlot, qDay } = pendingRange;
+                  setPendingRange(null);
+                  await executeRangeApply(mode, fromSlot, toSlot, qDay);
+                }}
+                style={{ width: '100%', padding: '10px 0', background: '#F1F5F9', color: '#475569',
+                         border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                         cursor: 'pointer' }}>
+                Continuer quand même
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Month legend — reservers only (available slots are plain green, no colored dot) */}
       {agendaView === 'Mois' && (() => {
         const takerUids = [...new Set(Object.values(myAvail.taken ?? {}))].filter(uid => members.find(m => m.uid === uid));
