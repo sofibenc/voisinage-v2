@@ -16,7 +16,12 @@ const VISITOR  = { bg: '#1E293B', light: '#F1F5F9', text: '#1E293B' };
 const MYSPOTS  = { bg: '#B45309', light: '#FEF3C7', text: '#92400E' };
 
 export default function App() {
-  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
+  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
+    onRegistered(registration) {
+      // Vérifie immédiatement à chaque chargement de la page
+      registration?.update();
+    },
+  });
   const { user, member, isFirstLogin } = useAuth();
   const [section,    setSection]    = useState('visitor'); // 'visitor' | 'myspots' | 'admin'
   const [authError,  setAuthError]  = useState(null);
