@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot } from 'firebase/firestore';
-import { settingsDoc, setSubtitle, setOperationalMode,
+import { settingsDoc, setSubtitle, setOperationalMode, setMinBuildTime,
          claimReservationRange, releaseReservationRange, reservationDoc,
          deleteMember, setMemberAdmin, setMemberActive, upsertMember } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
@@ -25,6 +25,7 @@ export default function AdminTab({ member }) {
 
   const [subtitle,        setSubtitleInput]  = useState('');
   const [operationalMode, setOperationalModeState] = useState(false);
+  const [minBuildTime,    setMinBuildTimeState]    = useState(0);
   const [editingName,     setEditingName]    = useState(null); // { uid, value }
 
   // Visitor calendar state
@@ -53,6 +54,7 @@ export default function AdminTab({ member }) {
       const data = snap.exists() ? snap.data() : {};
       setSubtitleInput(data.subtitle ?? '');
       setOperationalModeState(data.operationalMode ?? false);
+      setMinBuildTimeState(data.minBuildTime ?? 0);
     });
   }, []);
 
@@ -65,6 +67,51 @@ export default function AdminTab({ member }) {
 
   return (
     <div>
+      {/* Version */}
+      <div style={{ background: 'white', borderRadius: 14, padding: 16,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>VERSION DE L'APPLICATION</div>
+        <div style={{ fontSize: 13, color: '#475569', marginBottom: 10 }}>
+          Version déployée : <strong>{new Date(__APP_BUILD_TIME__).toLocaleString('fr-FR')}</strong>
+        </div>
+        {minBuildTime > 0 && minBuildTime < __APP_BUILD_TIME__ && (
+          <div style={{ fontSize: 12, color: '#92400E', background: '#FEF3C7',
+                        borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
+            Version minimale exigée : {new Date(minBuildTime).toLocaleString('fr-FR')}
+          </div>
+        )}
+        {minBuildTime >= __APP_BUILD_TIME__ && minBuildTime > 0 && (
+          <div style={{ fontSize: 12, color: '#065F46', background: '#D1FAE5',
+                        borderRadius: 8, padding: '6px 10px', marginBottom: 10 }}>
+            Mise à jour obligatoire active depuis {new Date(minBuildTime).toLocaleString('fr-FR')}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={async () => {
+              if (!window.confirm('Forcer la mise à jour pour tous les utilisateurs ayant une version antérieure à celle-ci ?')) return;
+              await setMinBuildTime(__APP_BUILD_TIME__);
+            }}
+            style={{ flex: 1, background: '#1E293B', color: 'white', border: 'none',
+                     borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600,
+                     cursor: 'pointer' }}>
+            Exiger cette version
+          </button>
+          {minBuildTime > 0 && (
+            <button
+              onClick={async () => {
+                if (!window.confirm('Supprimer la contrainte de version ?')) return;
+                await setMinBuildTime(0);
+              }}
+              style={{ background: '#F1F5F9', color: '#64748B', border: 'none',
+                       borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600,
+                       cursor: 'pointer' }}>
+              Désactiver
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Subtitle */}
       <div style={{ background: 'white', borderRadius: 14, padding: 16,
                     boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>

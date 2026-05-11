@@ -125,6 +125,10 @@ export async function setOperationalMode(enabled) {
   await setDoc(settingsDoc(), { operationalMode: enabled }, { merge: true });
 }
 
+export async function setMinBuildTime(time) {
+  await setDoc(settingsDoc(), { minBuildTime: time }, { merge: true });
+}
+
 // ── Spots (private) ───────────────────────────────────────────────────────────
 export const spotsCol     = () => collection(db, 'spots');
 export const spotDoc      = id  => doc(db, 'spots', id);

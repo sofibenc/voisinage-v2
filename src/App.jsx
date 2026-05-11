@@ -29,6 +29,7 @@ export default function App() {
   const [showWelcome,  setShowWelcome]  = useState(false);
   const [subtitle,         setSubtitle]         = useState('');
   const [operationalMode,  setOperationalModeState] = useState(false);
+  const [minBuildTime,     setMinBuildTimeState]    = useState(0);
   const { spotsBadge, adminBadge, clearSpotBadge } = useNotificationBadges(
     user?.uid ?? null,
     member?.isAdmin ?? false,
@@ -43,6 +44,7 @@ export default function App() {
       const data = snap.exists() ? snap.data() : {};
       setSubtitle(data.subtitle ?? '');
       setOperationalModeState(data.operationalMode ?? false);
+      setMinBuildTimeState(data.minBuildTime ?? 0);
     });
   }, []);
 
@@ -53,6 +55,27 @@ export default function App() {
 
   if (user === undefined) return (
     <div style={{ padding: 32, textAlign: 'center', color: '#64748B' }}>Chargement…</div>
+  );
+
+  if (minBuildTime > 0 && __APP_BUILD_TIME__ < minBuildTime) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', minHeight: '100vh', gap: 20, padding: 32,
+                  background: '#F8FAFC', textAlign: 'center' }}>
+      <img src="/logo.svg" alt="" style={{ width: 64, height: 64, borderRadius: 16 }} />
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 8 }}>Mise à jour requise</div>
+        <div style={{ color: '#64748B', fontSize: 14, maxWidth: 280 }}>
+          Une nouvelle version de l'application est disponible. Merci de mettre à jour pour continuer.
+        </div>
+      </div>
+      <button
+        onClick={() => needRefresh ? updateServiceWorker(true) : window.location.reload()}
+        style={{ background: '#2563EB', color: 'white', border: 'none',
+                 borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 700,
+                 cursor: 'pointer' }}>
+        Mettre à jour
+      </button>
+    </div>
   );
 
   if (!user) return (
