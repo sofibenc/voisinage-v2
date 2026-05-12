@@ -5,6 +5,8 @@ import { getMessaging }      from 'firebase-admin/messaging';
 import { buildNotifPayload, adminsWithTokens } from './lib/notif.js';
 
 initializeApp();
+const db        = getFirestore();
+const messaging = getMessaging();
 
 const INVALID_TOKEN_CODES = new Set([
   'messaging/registration-token-not-registered',
@@ -18,7 +20,6 @@ export const onNewMember = onDocumentWritten('members/{uid}', async event => {
   // Agir uniquement quand needsActivation passe à true (premier login)
   if (!after?.needsActivation || before?.needsActivation === true) return;
 
-  const db = getFirestore();
   const snapshot = await db.collection('members').where('isAdmin', '==', true).get();
   const allAdmins = snapshot.docs.map(d => ({ ref: d.ref, ...d.data() }));
   const eligible  = adminsWithTokens(allAdmins);
@@ -26,11 +27,17 @@ export const onNewMember = onDocumentWritten('members/{uid}', async event => {
   if (eligible.length === 0) return;
 
   const payload = {
-    ...buildNotifPayload(after.name ?? ''),
+    ...buildNotifPayload(after.name),
     tokens: eligible.map(a => a.fcmToken),
   };
 
-  const response = await getMessaging().sendEachForMulticast(payload);
+  let response;
+  try {
+    response = await messaging.sendEachForMulticast(payload);
+  } catch (err) {
+    console.error('sendEachForMulticast failed', err);
+    return;
+  }
 
   // Supprimer les tokens invalides de Firestore
   const cleanup = [];
