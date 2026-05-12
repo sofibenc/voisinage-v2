@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getDoc, onSnapshot } from 'firebase/firestore';
-import { auth, upsertMember, memberDoc } from '../firebase.js';
+import { auth, upsertMember, memberDoc, requestAndSaveFcmToken } from '../firebase.js';
 
 export function useAuth() {
   const [user, setUser]           = useState(undefined); // undefined = loading
@@ -28,7 +28,11 @@ export function useAuth() {
         const snap = await getDoc(memberDoc(firebaseUser.uid));
         const data = snap.exists() ? snap.data() : {};
         if (!data.name) {
-          await upsertMember(firebaseUser.uid, { name: firebaseUser.displayName, isActive: false });
+          await upsertMember(firebaseUser.uid, {
+            name: firebaseUser.displayName,
+            isActive: false,
+            needsActivation: true,
+          });
           setIsFirstLogin(true);
         }
       } catch (e) {
@@ -39,6 +43,7 @@ export function useAuth() {
       unsubMember = onSnapshot(memberDoc(firebaseUser.uid), snap => {
         if (snap.exists()) setMember({ uid: firebaseUser.uid, ...snap.data() });
       });
+      requestAndSaveFcmToken(firebaseUser.uid);
     });
 
     return () => {
