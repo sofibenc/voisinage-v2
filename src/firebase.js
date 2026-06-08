@@ -152,6 +152,14 @@ export async function setMinBuildTime(time) {
   await setDoc(settingsDoc(), { minBuildTime: time }, { merge: true });
 }
 
+export async function setMaxFutureMonths(n) {
+  await setDoc(settingsDoc(), { maxFutureMonths: n }, { merge: true });
+}
+
+export async function setMaxPastMonths(n) {
+  await setDoc(settingsDoc(), { maxPastMonths: n }, { merge: true });
+}
+
 // ── Spots (private) ───────────────────────────────────────────────────────────
 export const spotsCol     = () => collection(db, 'spots');
 export const spotDoc      = id  => doc(db, 'spots', id);
