@@ -266,6 +266,7 @@ export default function AdminTab({ member }) {
           </div>
           <button
             onClick={async () => {
+              if (maxFutureMonthsInput < 1 || maxPastMonthsInput < 0) return;
               await setMaxFutureMonths(maxFutureMonthsInput);
               await setMaxPastMonths(maxPastMonthsInput);
             }}
