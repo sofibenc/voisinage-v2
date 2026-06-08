@@ -47,7 +47,7 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [cancelSlotRange,  setCancelSlotRange]  = useState(null); // { day, startSlot, endSlot }
   const [clickError,       setClickError]       = useState(null);
 
-  const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
   const minDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
   const canGoPrev = new Date(year, month) > minDate;
