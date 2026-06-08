@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot } from 'firebase/firestore';
 import { settingsDoc, setSubtitle, setOperationalMode, setMinBuildTime,
+         setMaxFutureMonths, setMaxPastMonths,
          claimReservationRange, releaseReservationRange, reservationDoc,
          deleteMember, setMemberAdmin, setMemberActive, upsertMember } from '../firebase.js';
 import { useMembers } from '../hooks/useMembers.js';
@@ -26,6 +27,8 @@ export default function AdminTab({ member }) {
   const [subtitle,        setSubtitleInput]  = useState('');
   const [operationalMode, setOperationalModeState] = useState(false);
   const [minBuildTime,    setMinBuildTimeState]    = useState(0);
+  const [maxFutureMonthsInput, setMaxFutureMonthsInput] = useState(6);
+  const [maxPastMonthsInput,   setMaxPastMonthsInput]   = useState(3);
   const [editingName,     setEditingName]    = useState(null); // { uid, value }
 
   // Visitor calendar state
@@ -55,11 +58,13 @@ export default function AdminTab({ member }) {
       setSubtitleInput(data.subtitle ?? '');
       setOperationalModeState(data.operationalMode ?? false);
       setMinBuildTimeState(data.minBuildTime ?? 0);
+      setMaxFutureMonthsInput(data.maxFutureMonths ?? 6);
+      setMaxPastMonthsInput(data.maxPastMonths ?? 3);
     });
   }, []);
 
-  const minDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-  const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const minDate = new Date(now.getFullYear(), now.getMonth() - maxPastMonthsInput, 1);
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + maxFutureMonthsInput, 1);
   const canGoPrev = new Date(year, month) > minDate;
   const canGoNext = new Date(year, month + 1) < maxDate;
   function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); }
@@ -232,6 +237,41 @@ export default function AdminTab({ member }) {
                      background: operationalMode ? '#166534' : '#E2E8F0',
                      color: operationalMode ? 'white' : '#64748B' }}>
             {operationalMode ? '✓ Actif' : 'Inactif'}
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation calendrier */}
+      <div style={{ background: 'white', borderRadius: 14, padding: 16,
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 10 }}>NAVIGATION CALENDRIER</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4 }}>Mois futurs</div>
+            <input
+              type="number" min="1" max="24"
+              value={maxFutureMonthsInput}
+              onChange={e => setMaxFutureMonthsInput(Number(e.target.value))}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: 8,
+                       border: '1px solid #E2E8F0', fontSize: 14 }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, color: '#64748B', marginBottom: 4 }}>Mois passés</div>
+            <input
+              type="number" min="0" max="24"
+              value={maxPastMonthsInput}
+              onChange={e => setMaxPastMonthsInput(Number(e.target.value))}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: 8,
+                       border: '1px solid #E2E8F0', fontSize: 14 }} />
+          </div>
+          <button
+            onClick={async () => {
+              await setMaxFutureMonths(maxFutureMonthsInput);
+              await setMaxPastMonths(maxPastMonthsInput);
+            }}
+            style={{ background: '#1E293B', color: 'white', border: 'none',
+                     borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 600 }}>
+            OK
           </button>
         </div>
       </div>
