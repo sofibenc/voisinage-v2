@@ -27,8 +27,8 @@ export default function AdminTab({ member }) {
   const [subtitle,        setSubtitleInput]  = useState('');
   const [operationalMode, setOperationalModeState] = useState(false);
   const [minBuildTime,    setMinBuildTimeState]    = useState(0);
-  const [maxFutureMonthsInput, setMaxFutureMonthsInput] = useState(6);
-  const [maxPastMonthsInput,   setMaxPastMonthsInput]   = useState(3);
+  const [maxFutureMonthsInput, setMaxFutureMonthsInput] = useState('6');
+  const [maxPastMonthsInput,   setMaxPastMonthsInput]   = useState('3');
   const [editingName,     setEditingName]    = useState(null); // { uid, value }
 
   // Visitor calendar state
@@ -58,13 +58,13 @@ export default function AdminTab({ member }) {
       setSubtitleInput(data.subtitle ?? '');
       setOperationalModeState(data.operationalMode ?? false);
       setMinBuildTimeState(data.minBuildTime ?? 0);
-      setMaxFutureMonthsInput(data.maxFutureMonths ?? 6);
-      setMaxPastMonthsInput(data.maxPastMonths ?? 3);
+      setMaxFutureMonthsInput(String(data.maxFutureMonths ?? 6));
+      setMaxPastMonthsInput(String(data.maxPastMonths ?? 3));
     });
   }, []);
 
-  const minDate = new Date(now.getFullYear(), now.getMonth() - maxPastMonthsInput, 1);
-  const maxDate = new Date(now.getFullYear(), now.getMonth() + maxFutureMonthsInput, 1);
+  const minDate = new Date(now.getFullYear(), now.getMonth() - (parseInt(maxPastMonthsInput, 10) || 3), 1);
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + (parseInt(maxFutureMonthsInput, 10) || 6), 1);
   const canGoPrev = new Date(year, month) > minDate;
   const canGoNext = new Date(year, month + 1) < maxDate;
   function prevMonth() { if (!canGoPrev) return; if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); }
@@ -251,7 +251,7 @@ export default function AdminTab({ member }) {
             <input
               type="number" min="1" max="24"
               value={maxFutureMonthsInput}
-              onChange={e => setMaxFutureMonthsInput(Number(e.target.value))}
+              onChange={e => setMaxFutureMonthsInput(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: 8,
                        border: '1px solid #E2E8F0', fontSize: 14 }} />
           </div>
@@ -260,15 +260,17 @@ export default function AdminTab({ member }) {
             <input
               type="number" min="0" max="24"
               value={maxPastMonthsInput}
-              onChange={e => setMaxPastMonthsInput(Number(e.target.value))}
+              onChange={e => setMaxPastMonthsInput(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: 8,
                        border: '1px solid #E2E8F0', fontSize: 14 }} />
           </div>
           <button
             onClick={async () => {
-              if (maxFutureMonthsInput < 1 || maxPastMonthsInput < 0) return;
-              await setMaxFutureMonths(maxFutureMonthsInput);
-              await setMaxPastMonths(maxPastMonthsInput);
+              const future = parseInt(maxFutureMonthsInput, 10);
+              const past   = parseInt(maxPastMonthsInput, 10);
+              if (!(future >= 1) || !(past >= 0)) return;
+              await setMaxFutureMonths(future);
+              await setMaxPastMonths(past);
             }}
             style={{ background: '#1E293B', color: 'white', border: 'none',
                      borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 600 }}>
