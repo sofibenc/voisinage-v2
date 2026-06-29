@@ -30,6 +30,8 @@ export default function App() {
   const [subtitle,         setSubtitle]         = useState('');
   const [operationalMode,  setOperationalModeState] = useState(false);
   const [minBuildTime,     setMinBuildTimeState]    = useState(0);
+  const [maxFutureMonths,  setMaxFutureMonthsState] = useState(6);
+  const [maxPastMonths,    setMaxPastMonthsState]   = useState(3);
   const { spotsBadge, adminBadge, clearSpotBadge } = useNotificationBadges(
     user?.uid ?? null,
     member?.isAdmin ?? false,
@@ -45,6 +47,8 @@ export default function App() {
       setSubtitle(data.subtitle ?? '');
       setOperationalModeState(data.operationalMode ?? false);
       setMinBuildTimeState(data.minBuildTime ?? 0);
+      setMaxFutureMonthsState(data.maxFutureMonths ?? 6);
+      setMaxPastMonthsState(data.maxPastMonths ?? 3);
     });
   }, []);
 
@@ -201,7 +205,7 @@ export default function App() {
       {/* ── Content ── */}
       <div style={{ flex: 1, minHeight: 0, padding: 16, overflowY: 'auto' }}>
         <ErrorBoundary>
-          {section === 'visitor'  && <VisitorTab member={member} operationalMode={operationalMode} />}
+          {section === 'visitor'  && <VisitorTab member={member} operationalMode={operationalMode} maxFutureMonths={maxFutureMonths} maxPastMonths={maxPastMonths} />}
           {section === 'myspots'  && <SpotsTab member={member} operationalMode={operationalMode} onOpenProfile={() => setShowProfile(true)} />}
           {section === 'admin'    && member?.isAdmin && <AdminTab member={member} />}
         </ErrorBoundary>

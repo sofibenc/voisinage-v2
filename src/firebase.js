@@ -7,6 +7,7 @@ import {
   setDoc, updateDoc, deleteDoc,
   runTransaction, deleteField, increment,
 } from 'firebase/firestore';
+import { getMessaging, getToken } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,6 +21,11 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);
+
+let messaging = null;
+if (typeof window !== 'undefined') {
+  try { messaging = getMessaging(app); } catch { /* navigateur sans support push */ }
+}
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const googleProvider = new GoogleAuthProvider();
@@ -43,7 +49,24 @@ export async function setMemberAdmin(uid, isAdmin) {
 }
 
 export async function setMemberActive(uid, isActive) {
-  await setDoc(memberDoc(uid), { isActive }, { merge: true });
+  const data = isActive
+    ? { isActive, needsActivation: deleteField() }
+    : { isActive };
+  await setDoc(memberDoc(uid), data, { merge: true });
+}
+
+export async function requestAndSaveFcmToken(uid) {
+  if (!messaging || !('Notification' in window)) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const token = await getToken(messaging, {
+      vapidKey: import.meta.env.VITE_FCM_VAPID_KEY,
+    });
+    if (token) await setDoc(memberDoc(uid), { fcmToken: token }, { merge: true });
+  } catch {
+    // Notifications optionnelles — échec silencieux
+  }
 }
 
 // ── Reservations (visitor spot — premier arrivé premier servi) ────────────────
@@ -127,6 +150,14 @@ export async function setOperationalMode(enabled) {
 
 export async function setMinBuildTime(time) {
   await setDoc(settingsDoc(), { minBuildTime: time }, { merge: true });
+}
+
+export async function setMaxFutureMonths(n) {
+  await setDoc(settingsDoc(), { maxFutureMonths: n }, { merge: true });
+}
+
+export async function setMaxPastMonths(n) {
+  await setDoc(settingsDoc(), { maxPastMonths: n }, { merge: true });
 }
 
 // ── Spots (private) ───────────────────────────────────────────────────────────

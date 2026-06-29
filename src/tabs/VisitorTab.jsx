@@ -9,7 +9,7 @@ import { SLOTS_PER_DAY }   from '../utils/slots.js';
 function fmtStart(s) { return `${String(Math.floor(s/2)).padStart(2,'0')}h${s%2?'30':'00'}`; }
 function fmtEnd(s)   { return s === 47 ? '24h00' : fmtStart(s + 1); }
 
-export default function VisitorTab({ member, operationalMode = false }) {
+export default function VisitorTab({ member, operationalMode = false, maxFutureMonths = 6, maxPastMonths = 3 }) {
   const now   = new Date();
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -47,9 +47,9 @@ export default function VisitorTab({ member, operationalMode = false }) {
   const [cancelSlotRange,  setCancelSlotRange]  = useState(null); // { day, startSlot, endSlot }
   const [clickError,       setClickError]       = useState(null);
 
-  const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + maxFutureMonths, 1);
   const canGoNext = new Date(year, month + 1) < maxDate;
-  const minDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+  const minDate = new Date(now.getFullYear(), now.getMonth() - maxPastMonths, 1);
   const canGoPrev = new Date(year, month) > minDate;
 
   function prevMonth() {
