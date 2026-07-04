@@ -8,6 +8,7 @@ import {
   runTransaction, deleteField, increment,
 } from 'firebase/firestore';
 import { getMessaging, getToken } from 'firebase/messaging';
+import { exceedsConsecutiveHoursLimit } from './utils/reservationRules.js';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -73,8 +74,6 @@ export async function requestAndSaveFcmToken(uid) {
 export const reservationDoc = mk  => doc(db, 'reservations', mk);
 export const usageStatDoc   = uid => doc(db, 'usageStats',   uid);
 
-const SLOTS_PER_DAY_R = 48;
-
 export async function claimReservationRange(mk, fromSlot, toSlot, uid) {
   await runTransaction(db, async tx => {
     const ref     = reservationDoc(mk);
@@ -88,19 +87,10 @@ export async function claimReservationRange(mk, fromSlot, toSlot, uid) {
       if (owner && owner !== uid) throw new Error('OVERLAP');
     }
 
-    // Consecutive-days check: merge existing days + new days, look for 3+ in a row
-    const userDays = new Set();
-    for (const [sid, owner] of Object.entries(assignments)) {
-      if (owner === uid) userDays.add(Math.floor(Number(sid) / SLOTS_PER_DAY_R) + 1);
-    }
-    for (let s = fromSlot; s <= toSlot; s++) {
-      userDays.add(Math.floor(s / SLOTS_PER_DAY_R) + 1);
-    }
-    const sorted = [...userDays].sort((a, b) => a - b);
-    let run = 1;
-    for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] === sorted[i - 1] + 1) { run++; if (run > 2) throw new Error('MAX_CONSECUTIVE_DAYS'); }
-      else run = 1;
+    // Consecutive-hours check: on the streak of consecutive days this request
+    // touches, cumulative hours (existing + new) must not exceed 48h.
+    if (exceedsConsecutiveHoursLimit(assignments, uid, fromSlot, toSlot)) {
+      throw new Error('MAX_CONSECUTIVE_HOURS');
     }
 
     // Apply

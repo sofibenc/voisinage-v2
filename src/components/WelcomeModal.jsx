@@ -22,7 +22,7 @@ export default function WelcomeModal({ onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
           <Section icon="🏢" title="Place visiteur" color="#1E293B">
             Une place partagée, accessible à tous. Réservez les créneaux dont vous avez besoin,
-            dans la limite de <strong>2 jours consécutifs</strong>.
+            dans la limite de <strong>48h cumulées</strong> sur des jours consécutifs.
           </Section>
           <Section icon="🔑" title="Place Voisin" color="#B45309">
             Si vous avez votre propre place et que vous partez, proposez-la à vos voisins.
@@ -42,7 +42,7 @@ export default function WelcomeModal({ onClose }) {
                       marginBottom: 22, fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
           <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>📋 Règles de bonne conduite</div>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
-            <li>Respectez le quota de <strong>2 jours consécutifs</strong> max sur la place visiteur</li>
+            <li>Respectez le plafond de <strong>48h cumulées</strong> sur des jours consécutifs sur la place visiteur</li>
             <li>Annulez vos réservations si vos plans changent</li>
             <li>Soyez équitable — consultez la consommation des voisins</li>
           </ul>

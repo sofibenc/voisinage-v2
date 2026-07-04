@@ -108,8 +108,8 @@ export default function VisitorTab({ member, operationalMode = false, maxFutureM
     } catch (e) {
       if (e.message === 'OVERLAP') {
         setFormError("Cette plage est déjà réservée par quelqu'un d'autre.");
-      } else if (e.message === 'MAX_CONSECUTIVE_DAYS') {
-        setFormError('Vous ne pouvez pas réserver plus de 2 jours consécutifs.');
+      } else if (e.message === 'MAX_CONSECUTIVE_HOURS') {
+        setFormError('Vous ne pouvez pas dépasser 48h cumulées sur des jours consécutifs.');
       } else {
         setFormError('Erreur : ' + e.message);
       }
@@ -381,7 +381,7 @@ export default function VisitorTab({ member, operationalMode = false, maxFutureM
                 setClickedSlotRange(null);
               } catch (e) {
                 if (e.message === 'OVERLAP') setClickError("Cette plage est déjà réservée par quelqu'un d'autre.");
-                else if (e.message === 'MAX_CONSECUTIVE_DAYS') setClickError('Vous ne pouvez pas réserver plus de 2 jours consécutifs.');
+                else if (e.message === 'MAX_CONSECUTIVE_HOURS') setClickError('Vous ne pouvez pas dépasser 48h cumulées sur des jours consécutifs.');
                 else setClickError('Erreur : ' + e.message);
               }
             }}
